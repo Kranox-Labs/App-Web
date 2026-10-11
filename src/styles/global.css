@@ -1,0 +1,1763 @@
+/* Base styles and the classes that the pages share, after the widgets of the Mac app. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* The ground of the window paints on the root, so that the picture and the glows show through the body. */
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+  font: inherit;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg {
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+strong {
+  font-weight: 600;
+}
+
+::selection {
+  background: rgb(242 104 34 / 0.35);
+}
+
+:focus-visible {
+  outline: var(--focus-ring) solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The one line of a build without its settings. */
+.setup-failure {
+  max-width: var(--form-width);
+  padding: 32px;
+  color: var(--danger);
+}
+
+/* Type, after typography.dart. */
+.t-figure {
+  font-size: clamp(44px, 6vw, 76px);
+  font-weight: 250;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.t-figure-unit {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.t-card-figure {
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.t-swap-figure {
+  font-size: 36px;
+  font-weight: 250;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.t-mono-figure {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.t-send-figure {
+  font-size: 48px;
+  font-weight: 250;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.t-row-figure {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.t-page-title {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.t-board-title {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.t-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.t-body {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.t-body-regular {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.t-small {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.t-small-strong {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.t-label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.t-unit-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.t-button {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+@media not all and (min-width: 62rem) {
+  .t-send-figure {
+    font-size: clamp(30px, 9.5vw, 48px);
+  }
+}
+
+.soft {
+  color: var(--ink-soft);
+}
+
+.faint {
+  color: var(--ink-faint);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-small);
+}
+
+.stack--tight {
+  gap: 4px;
+}
+
+/* A title at the left and a small control at the right, on one line. */
+.between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* An icon takes the color of the text around it. */
+.icon {
+  display: inline-flex;
+  flex: none;
+  vertical-align: middle;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* The ground of the window: the picture of the look, calm in the middle, and the two glows over it. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ground__art {
+  position: absolute;
+  inset: 0;
+  background: url("/ground-art.webp") center / cover no-repeat;
+  opacity: var(--art-opacity);
+}
+
+/* A narrow screen loads the smaller picture. */
+@media not all and (min-width: 62rem) {
+  .ground__art {
+    background-image: url("/ground-art-small.webp");
+  }
+}
+
+.ground__calm {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 75% at 50% 50%, var(--calm) 0%, transparent 100%);
+}
+
+.ground__glow {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.ground__glow--ember {
+  width: 760px;
+  height: 760px;
+  right: -400px;
+  top: -500px;
+  background: radial-gradient(circle, var(--glow-ember) 0%, transparent 70%);
+}
+
+.ground__glow--violet {
+  width: 620px;
+  height: 620px;
+  left: -170px;
+  bottom: -400px;
+  background: radial-gradient(circle, var(--glow-violet) 0%, transparent 70%);
+}
+
+/* The frame of the app: the sidebar at the left, the page at the right, as the window of the Mac app. */
+.app {
+  display: flex;
+  min-height: 100svh;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  padding: 24px 16px 48px;
+}
+
+@media (min-width: 62rem) {
+  .app {
+    padding: var(--sidebar-inset);
+    gap: 0;
+  }
+
+  .page {
+    padding: var(--page-top) var(--page-x) var(--page-y);
+  }
+}
+
+/* The sidebar: a panel of glass that floats inside the window. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  padding: 10px;
+  background: var(--sidebar);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sidebar);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.sidebar__spacer {
+  flex: 1;
+}
+
+.scrim {
+  display: none;
+}
+
+@media (min-width: 62rem) {
+  .sidebar {
+    position: sticky;
+    top: var(--sidebar-inset);
+    flex: none;
+    height: calc(100svh - 2 * var(--sidebar-inset));
+    padding-top: 22px;
+  }
+
+  /* A wide screen always shows the sidebar, so it has no close button. */
+  .sidebar > .sidebar__close {
+    display: none;
+  }
+}
+
+/* On a narrow screen the sidebar slides in from the left over a shade, and a button at its top closes it. */
+@media not all and (min-width: 62rem) {
+  .sidebar {
+    position: fixed;
+    top: var(--sidebar-inset);
+    bottom: var(--sidebar-inset);
+    left: var(--sidebar-inset);
+    z-index: 30;
+    width: min(280px, calc(100vw - 2 * var(--sidebar-inset)));
+    padding-top: 14px;
+    transform: translateX(calc(-100% - var(--sidebar-inset)));
+    transition: transform var(--duration-medium) var(--ease);
+    overflow-y: auto;
+  }
+
+  .sidebar--open {
+    transform: none;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .sidebar > .sidebar__close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    background: rgb(0 0 0 / 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--duration-medium) var(--ease),
+      visibility var(--duration-medium) var(--ease);
+  }
+
+  .scrim--open {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--gap-small);
+  margin-bottom: calc(var(--gap) + 8px);
+}
+
+.brand__logo {
+  width: auto;
+  height: var(--sidebar-logo);
+}
+
+/* The wallet at the top of the sidebar: a round mark, the name, and the network. */
+.walletrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px;
+  margin-bottom: var(--gap);
+  border-radius: var(--radius-nav-row);
+}
+
+.walletrow:hover {
+  background: var(--field);
+}
+
+.walletrow__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--avatar);
+  height: var(--avatar);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  overflow: hidden;
+}
+
+.walletrow__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.walletrow__avatar--off {
+  background: var(--nav-tile);
+  color: var(--nav-tile-ink);
+}
+
+.walletrow__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.walletrow__text .t-mono {
+  font-size: 13px;
+  line-height: 1.25;
+  word-break: normal;
+}
+
+/* A link of the sidebar: an icon in a rounded tile and the name of the page. The active link fills its row. */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--nav-row);
+  padding: 0 6px;
+  border-radius: var(--radius-nav-row);
+  transition: background var(--duration-short);
+}
+
+.nav__item:hover {
+  background: var(--field);
+}
+
+.nav__tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--nav-tile);
+  height: var(--nav-tile);
+  border-radius: var(--radius-nav-tile);
+  background: var(--nav-tile);
+  color: var(--nav-tile-ink);
+}
+
+.nav__item--active,
+.nav__item--active:hover {
+  background: var(--nav-active);
+  color: var(--nav-active-ink);
+}
+
+.nav__item--active .nav__tile {
+  background: var(--nav-active-tile);
+  color: var(--nav-active-ink);
+}
+
+/* The state of the relay at the foot of the sidebar. */
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-status);
+}
+
+.status__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.status__dot--off {
+  background: var(--dot-off);
+}
+
+/* A square button with an icon in a tile, such as the one that opens the menu. */
+.tile-button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tile-button);
+  height: var(--tile-button);
+  border-radius: var(--radius-nav-row);
+  background: var(--nav-tile);
+  color: var(--nav-tile-ink);
+}
+
+/* The bar at the top of a narrow screen. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--ground) 82%, transparent);
+  border-bottom: 1px solid var(--line);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar__brand img {
+  width: auto;
+  height: 28px;
+}
+
+.topbar__end {
+  margin-left: auto;
+}
+
+@media (min-width: 62rem) {
+  .topbar {
+    display: none;
+  }
+}
+
+/* A page: the title, the line below it, and the content in one column in the middle. */
+.frame {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: var(--center-width);
+  margin-inline: auto;
+}
+
+.frame--wide {
+  max-width: var(--form-width);
+}
+
+.frame__title {
+  text-align: center;
+}
+
+.frame__lead {
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* The home takes the whole width, with its title at the left, as the home of the app. */
+.frame--full {
+  max-width: none;
+}
+
+.frame--full .frame__title,
+.frame--full .frame__lead {
+  text-align: left;
+}
+
+@media (min-width: 62rem) {
+  .frame--full {
+    margin-top: calc(var(--page-y) - var(--page-top));
+  }
+}
+
+.frame__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  margin-top: calc(var(--gap) + 10px);
+}
+
+.backlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  align-self: flex-start;
+  margin-bottom: 4px;
+  color: var(--ink-soft);
+}
+
+.backlink:hover {
+  color: var(--ink);
+}
+
+/* A small pill with a label in capitals, and a dot for a state. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.chip__dot--accent {
+  background: var(--accent);
+}
+
+.chip__dot--danger {
+  background: var(--danger);
+}
+
+.chip--button {
+  cursor: pointer;
+  transition: background var(--duration-short);
+}
+
+.chip--button:hover {
+  background: var(--solid);
+}
+
+.chip--on {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+}
+
+.chip--soon {
+  color: var(--ink-faint);
+}
+
+/* The cards. */
+.glass {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--card-padding);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: var(--radius-glass);
+  box-shadow: var(--shadow-glass);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--card-padding);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.surface--warn {
+  border-color: var(--danger-line);
+}
+
+@media not all and (min-width: 62rem) {
+  .glass,
+  .surface {
+    padding: 16px;
+  }
+}
+
+/* The boxes of the form of a swap, and the arrow between them. */
+.swapbox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--swap-box-padding);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-box);
+}
+
+.swapbox__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.swapbox__figure {
+  flex: 1;
+  min-width: 0;
+}
+
+.swapbox__figure p {
+  overflow-wrap: anywhere;
+}
+
+.swapbox__input {
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  caret-color: var(--accent);
+}
+
+.swapbox__input::placeholder {
+  color: var(--ink-faint);
+}
+
+.swapbox__notes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.swap-arrow {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: var(--swap-arrow);
+  height: var(--swap-arrow);
+  margin-block: calc(-1 * (var(--swap-arrow) / 2 + var(--gap) / 2));
+  position: relative;
+  z-index: 1;
+  border-radius: 50%;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+/* The coin of a box: its code and where it lives. */
+.coin {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: none;
+  padding: 10px 16px;
+  border-radius: var(--radius-field);
+  background: var(--field);
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+.coin--button {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  transition: background var(--duration-short);
+}
+
+.coin--button:hover {
+  background: var(--solid);
+}
+
+.coin__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coin__sub {
+  white-space: nowrap;
+}
+
+.coin-menu {
+  position: relative;
+  flex: none;
+}
+
+.coin-menu__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  width: 220px;
+  padding: 6px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  box-shadow: var(--shadow-raised);
+}
+
+.coin-menu__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.coin-menu__item:hover {
+  background: var(--field);
+}
+
+.coin-menu__check {
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+/* The two cards of a choice, such as the rate. */
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+@media not all and (min-width: 40rem) {
+  .choices {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: var(--choice-border) solid var(--line);
+  border-radius: var(--radius-field);
+  text-align: left;
+  transition: border-color var(--duration-short);
+}
+
+.choice:hover {
+  border-color: var(--glass-line);
+}
+
+.choice--on,
+.choice--on:hover {
+  border-color: var(--accent);
+}
+
+.choice__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.choice__check {
+  margin-left: auto;
+}
+
+/* A field of a form. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 0 16px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  transition: border-color var(--duration-short);
+}
+
+.field__box:focus-within {
+  border-color: var(--accent);
+}
+
+.field--error .field__box {
+  border-color: var(--danger);
+}
+
+.field__input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 0;
+  background: none;
+  border: 0;
+  outline: none;
+  caret-color: var(--accent);
+}
+
+.field__input.t-mono {
+  word-break: normal;
+}
+
+.field__input::placeholder {
+  color: var(--ink-faint);
+}
+
+.field__box > .t-small-strong {
+  padding-right: 8px;
+}
+
+.field__error {
+  color: var(--danger);
+}
+
+.field__good {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+/* Buttons. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-tiny);
+  padding: 16px 24px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  transition:
+    background var(--duration-short),
+    opacity var(--duration-short),
+    transform var(--duration-short);
+}
+
+.pill--accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.pill--solid {
+  background: var(--solid);
+  color: var(--solid-ink);
+}
+
+.pill--quiet {
+  background: var(--field);
+  color: var(--ink);
+}
+
+.pill--heroMain {
+  background: var(--hero-main);
+  color: var(--hero-main-ink);
+}
+
+.pill--small {
+  padding: 9px 16px;
+  font-size: 12px;
+}
+
+.pill--expand {
+  width: 100%;
+}
+
+.pill:disabled {
+  opacity: 0.5;
+}
+
+.pill:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.pill:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+.round {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--round-button);
+  height: var(--round-button);
+  border-radius: 50%;
+  background: var(--solid);
+  color: var(--solid-ink);
+  transition: background var(--duration-short);
+}
+
+.round:hover {
+  background: var(--nav-tile);
+}
+
+.round--small {
+  width: var(--small-round);
+  height: var(--small-round);
+}
+
+/* A spinner, like the one beside a step that runs. */
+.spinner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2.4px solid var(--line);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+
+.spinner--small {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+  border-color: rgb(0 0 0 / 0.2);
+  border-top-color: currentColor;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A line of note. */
+.notice {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-field);
+  background: var(--field);
+  border: 1px solid var(--line);
+}
+
+.notice--warn {
+  background: var(--danger-tint);
+  border-color: var(--danger-line);
+}
+
+.notice--warn .notice__icon {
+  color: var(--danger);
+}
+
+.notice--good {
+  background: var(--accent-tint);
+  border-color: transparent;
+}
+
+.notice--good .notice__icon {
+  color: var(--accent);
+}
+
+.notice__icon {
+  margin-top: 2px;
+}
+
+/* The facts of a swap, one on each line. */
+.facts {
+  display: flex;
+  flex-direction: column;
+}
+
+.fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+
+.fact:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.fact:last-child {
+  padding-bottom: 0;
+}
+
+.fact__key {
+  flex: none;
+}
+
+.fact__value {
+  min-width: 0;
+  text-align: right;
+}
+
+.fact--stack {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fact--stack .fact__value {
+  text-align: left;
+}
+
+/* An address or a hash in full, with its copy button. */
+.addressbox-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addressbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--address-padding);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+}
+
+.addressbox__text {
+  flex: 1;
+  min-width: 0;
+  user-select: all;
+}
+
+/* The QR code, on the cream of the brand. */
+.qr {
+  display: grid;
+  place-items: center;
+}
+
+.qr svg {
+  width: min(100%, var(--qr-size));
+  height: auto;
+  padding: var(--qr-padding);
+  background: var(--color-cream);
+  border-radius: 20px;
+}
+
+/* The ring of the privacy check, with the count inside. */
+.ring {
+  position: relative;
+  flex: none;
+  width: var(--ring-size);
+  height: var(--ring-size);
+}
+
+.ring svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring__arc {
+  fill: none;
+  stroke: var(--dot-off);
+  stroke-width: var(--ring-stroke);
+  stroke-linecap: round;
+}
+
+.ring__arc--lit {
+  stroke: var(--accent);
+}
+
+.ring__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.ringcard {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.ringcard__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* The rules of the check, one under the other. */
+.rules {
+  display: flex;
+  flex-direction: column;
+}
+
+.rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.rule:first-child {
+  border-top: 0;
+}
+
+.rule:last-child {
+  padding-bottom: 0;
+}
+
+.rule__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--transfer-icon);
+  height: var(--transfer-icon);
+  border-radius: 50%;
+}
+
+.rule__mark--pass {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.rule__mark--warn {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.rule__mark--off {
+  background: var(--field);
+  border: 1px solid var(--line);
+}
+
+.rule__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* The steps of a swap. */
+.steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: var(--gap);
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.step__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--step-mark);
+  height: var(--step-mark);
+  border-radius: 50%;
+  border: var(--step-line) solid var(--line);
+  color: var(--on-accent);
+}
+
+.step--done .step__mark {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.step--now .step__mark {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.step__line {
+  position: absolute;
+  left: calc((var(--step-mark) - var(--step-line)) / 2);
+  top: var(--step-mark);
+  bottom: 0;
+  width: var(--step-line);
+  background: var(--line);
+}
+
+.step__line--reached {
+  background: var(--accent);
+}
+
+.step__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.step__title {
+  color: var(--ink-faint);
+}
+
+.step--done .step__title,
+.step--now .step__title {
+  color: var(--ink);
+}
+
+/* A row of a list, as a transfer of the activity of the app. */
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.listrow:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.listrow:last-child {
+  padding-bottom: 0;
+}
+
+.listrow__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--transfer-icon);
+  height: var(--transfer-icon);
+  border-radius: 50%;
+}
+
+.listrow__icon--accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.listrow__icon--solid {
+  background: var(--solid);
+  color: var(--solid-ink);
+}
+
+.listrow__icon--danger {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.listrow__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.listrow__amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex: none;
+  text-align: right;
+}
+
+/* The wallets to pick from. */
+.wallets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.walletpick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  text-align: left;
+  transition: background var(--duration-short);
+}
+
+.walletpick:not(:disabled):hover {
+  background: var(--solid);
+}
+
+.walletpick__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--nav-tile);
+  color: var(--nav-tile-ink);
+  overflow: hidden;
+}
+
+.walletpick__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.walletpick__arrow {
+  margin-left: auto;
+  color: var(--ink-faint);
+  transform: rotate(-90deg);
+}
+
+/* A toast at the foot of the page. */
+.toast-host {
+  position: sticky;
+  bottom: var(--toast-bottom);
+  display: flex;
+  justify-content: center;
+  height: 0;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 10px 16px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-raised);
+  transform: translateY(-100%);
+  animation: toast-in var(--duration-short) var(--ease);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+}
+
+/* The home: the balance card, the two cards at its side, and the activity under them. */
+.home {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap);
+}
+
+.home__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+@media (min-width: 62rem) {
+  .home {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .home__recent {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The balance card: a gradient with a fine grain, as HeroSurface of the app. */
+.hero {
+  position: relative;
+  display: flex;
+  min-height: 252px;
+  padding: 28px;
+  border-radius: var(--radius-hero);
+  background: linear-gradient(135deg, #ff8a3d 0%, #e2541c 32%, #7a1f2e 70%, #2a1238 100%);
+  box-shadow: 0 30px 60px -20px rgb(226 84 28 / 0.4);
+  color: var(--color-white);
+  overflow: hidden;
+}
+
+.hero__grain {
+  position: absolute;
+  inset: 0;
+  background: url("/grain.png") repeat;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.hero__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.hero__label,
+.hero__soft {
+  opacity: 0.85;
+}
+
+.hero__figure {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+.hero__second {
+  opacity: 0.9;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.hero__arrow {
+  margin-left: auto;
+}
+
+.pill--heroAlt {
+  background: rgb(255 255 255 / 0.16);
+  color: var(--color-white);
+}
+
+.pill--off {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.round--hero {
+  background: rgb(255 255 255 / 0.16);
+  color: var(--color-white);
+}
+
+.round--hero:hover {
+  background: rgb(255 255 255 / 0.28);
+}
+
+/* A small tag, such as "Soon". */
+.tag {
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--solid);
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag--dark {
+  background: rgb(0 0 0 / 0.22);
+  color: var(--color-white);
+}
+
+.rule__mark--small {
+  width: 28px;
+  height: 28px;
+}
+
+/* The steps of receive: one bar for each step, and the name of the step now. */
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepper__bars {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.stepper__bar {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--dot-off);
+  transition: background var(--duration-short);
+}
+
+.stepper__bar--lit {
+  background: var(--accent);
+}
+
+/* The rows to pick from, such as the chains, and the card of a provider. */
+.picks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: var(--choice-border) solid var(--line);
+  border-radius: var(--radius-field);
+  text-align: left;
+  transition: border-color var(--duration-short);
+}
+
+.pick:not(:disabled):hover {
+  border-color: var(--glass-line);
+}
+
+.pick--on,
+.pick--on:hover {
+  border-color: var(--accent);
+}
+
+.pick:disabled {
+  opacity: 0.6;
+}
+
+.pick__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--transfer-icon);
+  height: var(--transfer-icon);
+  border-radius: 50%;
+  background: var(--nav-tile);
+  color: var(--nav-tile-ink);
+}
+
+.pick__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pick__end {
+  display: flex;
+  align-items: center;
+  flex: none;
+  margin-left: auto;
+}
+
+.provider {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  background: var(--surface);
+  border: var(--choice-border) solid var(--line);
+  border-radius: var(--radius-box);
+  text-align: left;
+  transition: border-color var(--duration-short);
+}
+
+.provider--on {
+  border-color: var(--accent);
+}
+
+.provider__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.provider__quote,
+.provider__sees {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.provider__quote .t-swap-figure {
+  margin-block: 2px 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation-duration: 0.01s !important;
+  }
+}

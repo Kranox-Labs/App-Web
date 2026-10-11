@@ -1,0 +1,6 @@
+# The public key of the relay, which the app must hold to check the signatures of its answers. It is no secret: the
+# Mac app ships the same key in apps/wallet/lib/config/app_config.dart.
+apps/door/.env.production:generic-api-key:5
+apps/door/test/config.test.ts:generic-api-key:6
+.env.production:generic-api-key:5
+test/config.test.ts:generic-api-key:6

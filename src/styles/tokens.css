@@ -1,0 +1,114 @@
+/*
+ * Design tokens of the door: the dark look of the Kranox app, Ember, with its colors from
+ * apps/wallet/lib/ui/theme/palette.dart, its sizes from metrics.dart, and its type from typography.dart.
+ * Components use these values and define no raw color or size of their own.
+ */
+:root {
+  /* The brand, from brand/palette.json. */
+  --color-orange: #f26822;
+  --color-cream: #f6f3ec;
+  --color-coal: #211d1a;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* The ground of the window, its picture, and its two glows. */
+  --ground: #0f0d0c;
+  --art-opacity: 0.24;
+  --calm: rgb(15 13 12 / 0.6);
+  --glow-ember: rgb(242 104 34 / 0.32);
+  --glow-violet: rgb(110 72 190 / 0.22);
+
+  /* The sidebar and the cards: frosted glass over the picture of the ground. */
+  --sidebar: rgb(29 27 26 / 0.75);
+  --line: rgb(246 243 236 / 0.08);
+  --surface: rgb(27 24 23 / 0.72);
+  --field: rgb(246 243 236 / 0.06);
+  --glass: rgb(21 18 15 / 0.55);
+  --glass-line: rgb(246 243 236 / 0.12);
+  --raised: #1b1817;
+
+  /* The text, in three strengths. */
+  --ink: var(--color-cream);
+  --ink-soft: rgb(246 243 236 / 0.6);
+  --ink-faint: rgb(246 243 236 / 0.35);
+
+  --accent: var(--color-orange);
+  --on-accent: #0f0d0c;
+  --accent-tint: rgb(242 104 34 / 0.18);
+  --danger: #ff8a7a;
+  --danger-tint: rgb(255 138 122 / 0.18);
+  --danger-line: rgb(255 138 122 / 0.35);
+
+  /* The links of the sidebar. */
+  --nav-active: var(--accent);
+  --nav-active-ink: #0f0d0c;
+  --nav-tile: #3a3532;
+  --nav-tile-ink: var(--color-cream);
+  --nav-active-tile: rgb(0 0 0 / 0.16);
+
+  /* A solid button or a round icon on a card, and a dot that is off. */
+  --solid: rgb(246 243 236 / 0.1);
+  --solid-ink: var(--color-cream);
+  --hero-main: #0f0d0c;
+  --hero-main-ink: var(--color-cream);
+  --dot-off: rgb(246 243 236 / 0.15);
+
+  --font-sans: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* The sizes of the app, in pixels. */
+  --sidebar-inset: 8px;
+  --sidebar-width: 232px;
+  --sidebar-logo: 40px;
+  --nav-tile: 24px;
+  --nav-glyph: 15px;
+  --nav-row: 36px;
+  --avatar: 34px;
+  --page-x: 30px;
+  --page-y: 26px;
+  --page-top: 64px;
+  --gap: 18px;
+  --gap-small: 10px;
+  --gap-tiny: 6px;
+  --card-padding: 22px;
+  --glass-blur: 24px;
+  --form-width: 640px;
+  --center-width: 540px;
+  --ring-size: 84px;
+  --ring-stroke: 7;
+  --round-button: 46px;
+  --small-round: 30px;
+  --qr-size: 220px;
+  --qr-padding: 14px;
+  --address-padding: 14px;
+  --swap-box-padding: 16px;
+  --swap-arrow: 38px;
+  --choice-border: 1.6px;
+  --step-mark: 24px;
+  --step-line: 2px;
+  --transfer-icon: 40px;
+  --toast-bottom: 28px;
+  --tile-button: 36px;
+
+  --radius-hero: 30px;
+  --radius-sidebar: 18px;
+  --radius-nav-row: 9px;
+  --radius-nav-tile: 7px;
+  --radius-glass: 30px;
+  --radius-card: 26px;
+  --radius-field: 16px;
+  --radius-status: 20px;
+  --radius-box: 22px;
+  --radius-pill: 999px;
+
+  --shadow-glass: 0 28px 60px -12px rgb(0 0 0 / 0.4);
+  --shadow-raised: 0 12px 32px rgb(0 0 0 / 0.45);
+
+  --duration-short: 0.2s;
+  --duration-medium: 0.35s;
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --focus-ring: 3px;
+
+  /* The wide layout starts here. A media query cannot read a custom property, so each query writes 62rem itself. */
+  --breakpoint-wide: 62rem;
+}
