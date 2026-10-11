@@ -86,6 +86,8 @@ export const COPY = {
     belowMin: (min: string) => `The least that goes through is ${min} XMR.`,
     aboveMax: (max: string) => `The most that goes through is ${max} XMR.`,
     badAmount: "Digits and one point only.",
+    tooManyDecimals: (max: number) => `At most ${max} decimals.`,
+    sampleWalletRefused: "The sample wallet cannot open a real swap. Connect a wallet of yours.",
     quoteNext: "The provider shows what you get, on the next step.",
     quoting: "Getting the quote…",
     quoteFailed: "The quote did not come. Try again in a moment.",

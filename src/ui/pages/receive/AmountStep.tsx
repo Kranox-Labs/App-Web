@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { AMOUNT_PATTERN } from "../../../chain.ts";
+import { AMOUNT_PATTERN, XMR_DECIMALS } from "../../../chain.ts";
 import { COPY } from "../../../copy.ts";
+import { decimalsOf } from "../../../door/amount.ts";
 import { useDraft } from "../../../door/draft.tsx";
 import type { ChainAsset, PayRange } from "../../../door/types.ts";
 import { client } from "../../../door/use-client.ts";
@@ -45,11 +46,13 @@ export function AmountStep() {
   const error =
     xmrAmount !== "" && !AMOUNT_PATTERN.test(xmrAmount)
       ? COPY.receive.badAmount
-      : outside && range !== null
-        ? amount < range.minXmr
-          ? COPY.receive.belowMin(formatXmr(range.minXmr))
-          : COPY.receive.aboveMax(formatXmr(range.maxXmr ?? amount))
-        : null;
+      : xmrAmount !== "" && decimalsOf(xmrAmount) > XMR_DECIMALS
+        ? COPY.receive.tooManyDecimals(XMR_DECIMALS)
+        : outside && range !== null
+          ? amount < range.minXmr
+            ? COPY.receive.belowMin(formatXmr(range.minXmr))
+            : COPY.receive.aboveMax(formatXmr(range.maxXmr ?? amount))
+          : null;
   const rangeHint =
     range === null
       ? null

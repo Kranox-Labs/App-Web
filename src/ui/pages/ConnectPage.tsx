@@ -88,7 +88,7 @@ export function ConnectPage() {
           )}
           {busy && <p className="t-small soft">{COPY.wallet.connecting}</p>}
           {error !== null && <Notice tone="warn">{error}</Notice>}
-          {import.meta.env.DEV && (
+          {import.meta.env.DEV && client.sample && (
             <div>
               <PillButton tone="quiet" small onClick={connectSampleWallet}>
                 {COPY.wallet.sample}

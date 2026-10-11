@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { ROBINHOOD_CHAIN } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
 import { useSwaps } from "../../door/store.ts";
 import type { Balances } from "../../door/types.ts";
@@ -31,7 +32,8 @@ export function HomePage() {
 
   // The balances come through the wallet, which talks to the chain for its own balance anyway.
   useEffect(() => {
-    if (connection === null) return;
+    // A wallet on another network holds other coins: the card shows nothing until it switches.
+    if (connection === null || connection.chainId !== ROBINHOOD_CHAIN.id) return;
     let live = true;
     const owner = connection.address;
     balanceReader(connection.choice.provider)

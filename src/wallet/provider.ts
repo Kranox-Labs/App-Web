@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-import { ROBINHOOD_CHAIN } from "../chain.ts";
+import { EVM_ADDRESS_PATTERN, ROBINHOOD_CHAIN } from "../chain.ts";
 
 // The wallet of the user, found through EIP-6963: each wallet extension announces itself with a name and an icon,
 // and the user picks one. The door asks it for its address and its network, and for a switch to Robinhood Chain.
@@ -57,6 +57,9 @@ const REMEMBER_KEY = "kranox.door.wallet";
 
 /** A wallet that speaks the old way only, through window.ethereum, gets this name. */
 const FALLBACK_RDNS = "window.ethereum";
+
+/** The name of the made-up wallet of development, which no real swap may use. */
+export const SAMPLE_WALLET_RDNS = "sample";
 const FALLBACK_WAIT_MS = 400;
 
 /** The code with which a wallet says that it does not know the chain (EIP-3085). */
@@ -99,7 +102,9 @@ export function discoverWallets(): void {
       provider,
     };
     set({ wallets: [...state.wallets, choice] });
-    if (state.connection === null && remembered() === choice.info.rdns) void reconnect(choice);
+    // The remembered wallet connects again without a prompt, unless two wallets claim its name: then the user picks.
+    const claimants = state.wallets.filter((wallet) => wallet.info.rdns === choice.info.rdns).length;
+    if (state.connection === null && remembered() === choice.info.rdns && claimants === 1) void reconnect(choice);
   });
   window.dispatchEvent(new Event("eip6963:requestProvider"));
   // A wallet that announces nothing may still sit at window.ethereum, as in the browser of some wallet apps.
@@ -137,6 +142,8 @@ async function reconnect(choice: WalletChoice): Promise<void> {
     const address = firstAddress(accounts);
     if (address === null) return;
     const chainId = await readChainId(choice.provider);
+    // The user may have connected a wallet by hand while this one answered; that wallet stays.
+    if (state.connection !== null) return;
     attach(choice);
     set({ connection: { choice, address, chainId } });
   } catch {
@@ -201,7 +208,7 @@ export function connectSampleWallet(): void {
     },
   };
   const choice: WalletChoice = {
-    info: { uuid: "sample", name: "Sample wallet", icon: "", rdns: "sample" },
+    info: { uuid: SAMPLE_WALLET_RDNS, name: "Sample wallet", icon: "", rdns: SAMPLE_WALLET_RDNS },
     provider,
   };
   set({ connection: { choice, address, chainId: ROBINHOOD_CHAIN.id }, error: null });
@@ -233,17 +240,19 @@ async function readChainId(provider: EIP1193Provider): Promise<number> {
   return parseChainId(await provider.request({ method: "eth_chainId" })) ?? 0;
 }
 
+/** The id of a chain as a wallet gives it: hex with 0x, as EIP-1193 says, or a whole number. Anything else is none. */
 function parseChainId(value: unknown): number | null {
-  if (typeof value === "number") return value;
-  if (typeof value !== "string") return null;
+  if (typeof value === "number") return Number.isSafeInteger(value) && value >= 0 ? value : null;
+  if (typeof value !== "string" || !/^0x[0-9a-f]+$/i.test(value)) return null;
   const parsed = Number.parseInt(value, 16);
-  return Number.isNaN(parsed) ? null : parsed;
+  return Number.isSafeInteger(parsed) ? parsed : null;
 }
 
+/** The first address that a wallet names, when it has the form of an address on an EVM chain. */
 function firstAddress(accounts: unknown): string | null {
   if (!Array.isArray(accounts)) return null;
   const first: unknown = accounts[0];
-  return typeof first === "string" && first.length > 0 ? first : null;
+  return typeof first === "string" && EVM_ADDRESS_PATTERN.test(first) ? first : null;
 }
 
 function remembered(): string | null {

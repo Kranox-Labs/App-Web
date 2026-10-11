@@ -1,6 +1,13 @@
 import { useSyncExternalStore } from "react";
 
-import type { ChainAsset, CreatedPay, PayRate, SwapState, SwapStatus } from "./types.ts";
+import {
+  SWAP_STATUSES,
+  type ChainAsset,
+  type CreatedPay,
+  type PayRate,
+  type SwapState,
+  type SwapStatus,
+} from "./types.ts";
 
 /** A swap of the user, as this browser keeps it: what was asked, where it goes, and the last state read. */
 export interface SwapRecord {
@@ -51,8 +58,11 @@ export function findSwap(id: string): SwapRecord | null {
   return readSwaps().find((swap) => swap.id === id) ?? null;
 }
 
-/** A record of a swap that the exchanger just opened. */
-export function recordOf(created: CreatedPay, rate: PayRate, validUntil: string | null): SwapRecord {
+/**
+ * A record of a swap that the exchanger just opened. The time to send comes with the first read of its state: the
+ * quote had a time of its own, for the rate, which is not the time of the deposit.
+ */
+export function recordOf(created: CreatedPay, rate: PayRate): SwapRecord {
   return {
     id: created.id,
     readToken: created.readToken,
@@ -64,7 +74,7 @@ export function recordOf(created: CreatedPay, rate: PayRate, validUntil: string 
     payoutAddress: created.payoutAddress,
     refundAddress: created.refundAddress,
     createdAt: new Date().toISOString(),
-    validUntil,
+    validUntil: null,
     status: "waiting",
     depositHash: null,
     payoutHash: null,
@@ -92,7 +102,8 @@ export function withState(record: SwapRecord, state: SwapState): SwapRecord {
     refundAmount: state.refundAmount ?? record.refundAmount,
     updatedAt: state.updatedAt ?? record.updatedAt,
     validUntil: state.validUntil ?? record.validUntil,
-    amount: state.amountOut ?? record.amount,
+    // What arrived counts once the swap is done; before that, the exchanger may name a number that is not final.
+    amount: state.status === "finished" && state.amountOut !== null ? state.amountOut : record.amount,
     checkedAt: new Date().toISOString(),
   };
 }
@@ -124,20 +135,33 @@ function load(): readonly SwapRecord[] {
   }
 }
 
-// A record that another release wrote, or that a hand changed, stays out rather than breaking a page.
+const isText = (value: unknown): boolean => typeof value === "string";
+const isNullableText = (value: unknown): boolean => value === null || typeof value === "string";
+const isNullableNumber = (value: unknown): boolean => value === null || typeof value === "number";
+
+// A record that another release wrote, or that a hand changed, stays out rather than breaking a page: every field
+// must have its form, and the state must be one the pages know.
 function isRecord(value: unknown): value is SwapRecord {
   if (typeof value !== "object" || value === null) return false;
   const record = value as Record<string, unknown>;
   return (
-    typeof record.id === "string" &&
-    typeof record.readToken === "string" &&
+    isText(record.id) &&
+    isText(record.readToken) &&
     (record.asset === "ETH" || record.asset === "USDG") &&
     (record.rate === "fixed" || record.rate === "floating") &&
     typeof record.xmrAmount === "number" &&
     typeof record.amount === "number" &&
-    typeof record.depositAddress === "string" &&
-    typeof record.payoutAddress === "string" &&
-    typeof record.createdAt === "string" &&
-    typeof record.status === "string"
+    isText(record.depositAddress) &&
+    isText(record.payoutAddress) &&
+    isNullableText(record.refundAddress) &&
+    isText(record.createdAt) &&
+    isNullableText(record.validUntil) &&
+    SWAP_STATUSES.some((status) => status === record.status) &&
+    isNullableText(record.depositHash) &&
+    isNullableText(record.payoutHash) &&
+    isNullableText(record.refundHash) &&
+    isNullableNumber(record.refundAmount) &&
+    isNullableText(record.updatedAt) &&
+    isNullableText(record.checkedAt)
   );
 }

@@ -6,13 +6,16 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { loadConfig } from "./config.ts";
+import { importSigningKey } from "./door/signature.ts";
 
 const root = document.getElementById("root");
 if (root === null) throw new Error("The page has no root element.");
 
 // The settings come first: a build without them stops here, with the reason on the page, before any page loads.
 try {
-  loadConfig();
+  const config = loadConfig();
+  // A key of the relay that is no point of its curve fails here, with its reason, and not later in every call.
+  if (!config.sampleData) await Promise.all(config.relaySigningKeys.map(importSigningKey));
 } catch (error) {
   root.replaceChildren(setupFailure(error));
   throw error;

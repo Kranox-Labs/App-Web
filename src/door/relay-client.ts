@@ -1,7 +1,7 @@
 // The door through the relay of Kranox, as the Mac app talks to it (apps/wallet/lib/bridge/client.dart): each request
 // carries a nonce, and an answer counts only with the signature of the relay over that request and that answer, an
 // error too. The relay holds the key of the exchanger and keeps no log of a request.
-import { RELAY_ANSWER_MAX_BYTES, RELAY_TIMEOUT_MS } from "../chain.ts";
+import { AMOUNT_MATCH_TOLERANCE, MONERO_DEPOSIT_PATTERN, RELAY_ANSWER_MAX_BYTES, RELAY_TIMEOUT_MS } from "../chain.ts";
 import type { DoorClient } from "./client.ts";
 import { RelayError } from "./errors.ts";
 import {
@@ -70,7 +70,7 @@ export class RelayClient implements DoorClient {
     const fields = await this.#call("GET", "/v1/pay/range", { query: { asset: RELAY_ASSETS[asset], rate } });
     return {
       asset: readAsset(fields, asset),
-      rate: readChoice(fields, "rate", RATES),
+      rate: readRate(fields, rate),
       minXmr: readNumber(fields, "minXmr"),
       maxXmr: readNullableNumber(fields, "maxXmr"),
     };
@@ -86,7 +86,7 @@ export class RelayClient implements DoorClient {
     const limit = readNullableString(fields, "limit");
     return {
       asset: readAsset(fields, asset),
-      rate: readChoice(fields, "rate", RATES),
+      rate: readRate(fields, rate),
       xmrAmount,
       amount: readNullableNumber(fields, "amount"),
       rateId: readNullableString(fields, "rateId"),
@@ -123,12 +123,22 @@ export class RelayClient implements DoorClient {
     if (refundAddress !== request.refundAddress) {
       throw new RelayError("failed", "The relay opened a swap with another refund address.");
     }
+    // The page tells the user to send exactly the amount of the swap, so it must be the amount of the request, and
+    // the deposit address must be one of Monero, as the relay checks before it signs.
+    const xmrAmount = readNumber(fields, "xmrAmount");
+    if (!amountsMatch(Number(request.xmrAmount), xmrAmount)) {
+      throw new RelayError("failed", "The relay opened a swap for another amount of XMR.");
+    }
+    const depositAddress = readString(fields, "depositAddress");
+    if (!MONERO_DEPOSIT_PATTERN.test(depositAddress)) {
+      throw new RelayError("failed", "The relay opened a swap with a deposit address that is not a Monero address.");
+    }
     return {
       id: readString(fields, "id"),
       asset: readAsset(fields, request.asset),
       amount: readNumber(fields, "amount"),
-      xmrAmount: readNumber(fields, "xmrAmount"),
-      depositAddress: readString(fields, "depositAddress"),
+      xmrAmount,
+      depositAddress,
       payoutAddress,
       refundAddress,
       readToken: readString(fields, "readToken"),
@@ -221,6 +231,19 @@ function readAsset(fields: Fields, asset: ChainAsset): ChainAsset {
     throw new RelayError("failed", "The relay answered for another coin.");
   }
   return asset;
+}
+
+/** The rate of an answer, which must be the rate of the request. */
+function readRate(fields: Fields, rate: PayRate): PayRate {
+  if (readChoice(fields, "rate", RATES) !== rate) {
+    throw new RelayError("failed", "The relay answered for another rate.");
+  }
+  return rate;
+}
+
+/** Whether two amounts differ by less than the tolerance, as the relay compares them. */
+function amountsMatch(sent: number, answered: number): boolean {
+  return Math.abs(sent - answered) <= AMOUNT_MATCH_TOLERANCE * Math.max(Math.abs(sent), Math.abs(answered));
 }
 
 /** The body of an answer, read up to the cap of the app, so that an answer of any size cannot fill its memory. */

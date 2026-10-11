@@ -90,6 +90,8 @@ export function SwapPage({ id }: { id: string }) {
   const { step, end } = stepOf(record.status);
   const waiting = record.status === "new" || record.status === "waiting";
   const timeLeft = record.validUntil === null ? null : formatTimeLeft(record.validUntil, now);
+  // Once the time to send ran out, the deposit address goes away, so that nobody sends to a swap that stopped waiting.
+  const ranOut = record.validUntil !== null && timeLeft === null;
   const xmr = formatXmr(record.xmrAmount);
   const amount = formatAsset(record.amount, record.asset);
   const uri = `monero:${record.depositAddress}?tx_amount=${xmr}`;
@@ -101,19 +103,15 @@ export function SwapPage({ id }: { id: string }) {
       title={waiting ? COPY.swap.sendExactly(xmr) : COPY.swap.into(xmr, amount, record.asset)}
       lead={waiting ? COPY.swap.lead : undefined}
     >
-      {waiting && (
+      {waiting && ranOut && <Notice tone="warn">{COPY.swap.expired}</Notice>}
+      {waiting && !ranOut && (
         <Glass>
           <QrCode text={uri} label={`${COPY.swap.depositAddress}: ${record.depositAddress}`} />
           <AddressBox label={COPY.swap.depositAddress} text={record.depositAddress} />
           <a className="pill pill--solid pill--expand" href={uri}>
             {COPY.swap.openWallet}
           </a>
-          {record.validUntil !== null &&
-            (timeLeft === null ? (
-              <Notice tone="warn">{COPY.swap.expired}</Notice>
-            ) : (
-              <p className="t-small soft text-center">{COPY.swap.timeLeft(timeLeft)}</p>
-            ))}
+          {timeLeft !== null && <p className="t-small soft text-center">{COPY.swap.timeLeft(timeLeft)}</p>}
         </Glass>
       )}
       <Surface>

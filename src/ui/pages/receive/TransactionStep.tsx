@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 
-import { MONERO_ADDRESS_PATTERN } from "../../../chain.ts";
 import { COPY } from "../../../copy.ts";
 import { useDraft } from "../../../door/draft.tsx";
 import { describeError } from "../../../door/errors.ts";
+import { isMoneroMainnetAddress } from "../../../door/monero-address.ts";
 import { randomToken } from "../../../door/signature.ts";
 import { putSwap, recordOf } from "../../../door/store.ts";
 import { client } from "../../../door/use-client.ts";
 import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
-import { useWallet } from "../../../wallet/provider.ts";
+import { SAMPLE_WALLET_RDNS, useWallet } from "../../../wallet/provider.ts";
 import { Fact, Glass, Notice, PageFrame, PillButton, Surface } from "../../widgets/bits.tsx";
 import { Field } from "../../widgets/Field.tsx";
 import { Stepper } from "./Stepper.tsx";
@@ -27,9 +27,9 @@ export function TransactionStep() {
   const now = useNow();
   const [opening, setOpening] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-  // The key of this creation: a second try after a lost answer carries the same key, so the relay gives the same
-  // swap instead of a second one.
-  const creationKey = useRef<string | null>(null);
+  // The key of this creation, with the request it belongs to: a second try of the same request after a lost answer
+  // carries the same key, so the relay gives the same swap instead of a second one; a changed request gets a new key.
+  const creation = useRef<{ fingerprint: string; key: string } | null>(null);
 
   const quote = draft.quote;
   const validUntil = quote?.validUntil ?? null;
@@ -69,7 +69,7 @@ export function TransactionStep() {
   }
 
   const refund = draft.refundAddress;
-  const refundValid = MONERO_ADDRESS_PATTERN.test(refund);
+  const refundValid = isMoneroMainnetAddress(refund);
   const refundError = refund !== "" && !refundValid ? COPY.receive.refundInvalid : null;
   const timeLeft = validUntil === null ? null : formatTimeLeft(validUntil, now);
   const chain = COPY.chains[draft.chain];
@@ -84,20 +84,28 @@ export function TransactionStep() {
   };
 
   const open = async () => {
+    // The made-up wallet of development holds no key of anyone: a real swap to its address would send coins nowhere.
+    if (connection.choice.info.rdns === SAMPLE_WALLET_RDNS && !client.sample) {
+      setFailure(COPY.receive.sampleWalletRefused);
+      return;
+    }
     setOpening(true);
     setFailure(null);
-    creationKey.current ??= randomToken(CREATION_KEY_BYTES);
+    const request = {
+      asset: draft.asset,
+      rate: draft.rate,
+      xmrAmount: draft.xmrAmount,
+      address: connection.address,
+      refundAddress: refund,
+      rateId: quote.rateId,
+    };
+    const fingerprint = JSON.stringify(request);
+    if (creation.current?.fingerprint !== fingerprint) {
+      creation.current = { fingerprint, key: randomToken(CREATION_KEY_BYTES) };
+    }
     try {
-      const created = await client.createPay({
-        asset: draft.asset,
-        rate: draft.rate,
-        xmrAmount: draft.xmrAmount,
-        address: connection.address,
-        refundAddress: refund,
-        rateId: quote.rateId,
-        creationKey: creationKey.current,
-      });
-      putSwap(recordOf(created, draft.rate, quote.validUntil));
+      const created = await client.createPay({ ...request, creationKey: creation.current.key });
+      putSwap(recordOf(created, draft.rate));
       reset();
       navigate(ROUTES.swap(created.id));
     } catch (error) {

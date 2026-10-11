@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
-import { AMOUNT_PATTERN, ROBINHOOD_CHAIN } from "../../../chain.ts";
+import { ROBINHOOD_CHAIN } from "../../../chain.ts";
+import { isXmrAmount } from "../../../door/amount.ts";
 import { useDraft, type Draft } from "../../../door/draft.tsx";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useWallet, type Connection } from "../../../wallet/provider.ts";
@@ -15,7 +16,7 @@ export const STEP_ROUTES = [
 ] as const;
 
 export function validAmount(text: string): boolean {
-  return AMOUNT_PATTERN.test(text) && Number(text) > 0;
+  return isXmrAmount(text);
 }
 
 /** Whether a wallet is connected and on Robinhood Chain. */

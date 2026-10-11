@@ -34,6 +34,12 @@ export const EVM_ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 /** A Monero mainnet address: a standard or a subaddress of 95 characters, as the relay accepts for a refund. */
 export const MONERO_ADDRESS_PATTERN = /^[48][1-9A-HJ-NP-Za-km-z]{94}$/;
 
+/** A deposit address of the exchanger for XMR: a standard address or a subaddress of mainnet, or an integrated one. */
+export const MONERO_DEPOSIT_PATTERN = /^(?:[48][1-9A-HJ-NP-Za-km-z]{94}|4[1-9A-HJ-NP-Za-km-z]{105})$/;
+
+/** Two amounts match when they differ by less than this share of the larger one, as in the relay. */
+export const AMOUNT_MATCH_TOLERANCE = 1e-9;
+
 /** An amount as the relay reads it: digits, with a point for decimals. */
 export const AMOUNT_PATTERN = /^\d{1,9}(\.\d{1,18})?$/;
 
