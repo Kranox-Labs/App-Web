@@ -1,4 +1,4 @@
-import type { ChainAsset, FromChain, ProviderId, SwapStatus } from "./door/types.ts";
+import type { ChainAsset, FromChain, ProviderId, SwapStatus } from "./gate/types.ts";
 
 /** Where the support of the exchanger answers. CHECKED 5 Oct 2026 for the app; the same address here. */
 export const EXCHANGER_SUPPORT = "support@changenow.io";
@@ -79,7 +79,7 @@ export const COPY = {
     chainLead: "Where do the coins come from?",
     amountLead: "How much, and which coin arrives in your wallet.",
     providerLead: "Who turns your XMR into the coin on Robinhood Chain.",
-    privacyLead: "What this swap gives away, checked in this browser before you open the door.",
+    privacyLead: "What this swap gives away, checked in this browser before you open the gate.",
     transactionLead: "Where a refund goes if the swap fails, then the review.",
     sampleLead: "Sample data: nothing is sent, and no swap is made anywhere.",
     continue: "Continue",
@@ -121,7 +121,7 @@ export const COPY = {
     paste: "Paste",
     refundTip:
       "Use a new subaddress of your Monero wallet, not one that took part in a swap before. A refund is rare: it comes only when the provider cannot complete the swap.",
-    review: "Before you open the door",
+    review: "Before you open the gate",
     to: "To",
     provider: "Provider",
     rateLabel: "Rate",
@@ -129,7 +129,7 @@ export const COPY = {
     floating: "Floating",
     quoteRanOut: "The quote ran out. Getting a new one…",
     refundTo: "Refund to",
-    open: "Open the door",
+    open: "Open the gate",
     opening: "Opening…",
     failed: "The swap could not start. Try again in a moment.",
   },
@@ -212,7 +212,7 @@ export const COPY = {
 
   privacy: {
     title: "Privacy",
-    lead: "What the door can tell before you open it, worked out in this browser from your own swaps here and the public history of an address.",
+    lead: "What the gate can tell before you open it, worked out in this browser from your own swaps here and the public history of an address.",
     shows: "What the next swap shows",
     clear: "clear",
     allClear: "All clear",

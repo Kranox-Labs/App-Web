@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 
 import { QUOTE_DELAY_MS } from "../../../chain.ts";
 import { COPY } from "../../../copy.ts";
-import { PROVIDERS } from "../../../door/catalog.ts";
-import { useDraft } from "../../../door/draft.tsx";
-import { describeError } from "../../../door/errors.ts";
-import type { PayRange, PayRate } from "../../../door/types.ts";
-import { client } from "../../../door/use-client.ts";
+import { PROVIDERS } from "../../../gate/catalog.ts";
+import { useDraft } from "../../../gate/draft.tsx";
+import { describeError } from "../../../gate/errors.ts";
+import type { PayRange, PayRate } from "../../../gate/types.ts";
+import { client } from "../../../gate/use-client.ts";
 import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";

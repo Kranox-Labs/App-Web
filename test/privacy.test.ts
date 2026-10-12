@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkPrivacy, warningCount } from "../src/door/privacy.ts";
-import type { SwapRecord } from "../src/door/store.ts";
+import { checkPrivacy, warningCount } from "../src/gate/privacy.ts";
+import type { SwapRecord } from "../src/gate/store.ts";
 
 const NOW = Date.parse("2026-10-11T12:00:00Z");
 const RECIPIENT = "0x7a3fC0e1b9D24A6c58E0f3B1d9a7C4e2F6b8D015";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decodeMoneroBase58, isMoneroMainnetAddress } from "../src/door/monero-address.ts";
+import { decodeMoneroBase58, isMoneroMainnetAddress } from "../src/gate/monero-address.ts";
 
 // Two addresses of throwaway wallets on mainnet, as in the tests of the relay and of the Mac app: a standard address
 // and a subaddress.

@@ -1,13 +1,13 @@
 import { loadConfig } from "../config.ts";
 import { SampleBalanceReader, WalletBalanceReader, type BalanceReader } from "../wallet/balances.ts";
 import type { EIP1193Provider } from "../wallet/provider.ts";
-import { SampleClient, type DoorClient } from "./client.ts";
+import { SampleClient, type GateClient } from "./client.ts";
 import { RelayClient } from "./relay-client.ts";
 
 const config = loadConfig();
 
 /** The one client of the app: the relay, or the sample client when the build runs on sample data. */
-export const client: DoorClient = config.sampleData
+export const client: GateClient = config.sampleData
   ? new SampleClient()
   : new RelayClient(config.relayUrl, config.relaySigningKeys);
 

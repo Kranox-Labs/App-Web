@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
 import { COPY } from "../../../copy.ts";
-import { useDraft } from "../../../door/draft.tsx";
-import { describeError } from "../../../door/errors.ts";
-import { isMoneroMainnetAddress } from "../../../door/monero-address.ts";
-import { randomToken } from "../../../door/signature.ts";
-import { putSwap, recordOf } from "../../../door/store.ts";
-import { client } from "../../../door/use-client.ts";
+import { useDraft } from "../../../gate/draft.tsx";
+import { describeError } from "../../../gate/errors.ts";
+import { isMoneroMainnetAddress } from "../../../gate/monero-address.ts";
+import { randomToken } from "../../../gate/signature.ts";
+import { putSwap, recordOf } from "../../../gate/store.ts";
+import { client } from "../../../gate/use-client.ts";
 import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
@@ -19,7 +19,7 @@ import { onRobinhoodChain, useStepGuard } from "./steps.ts";
 /** The key of a creation has this many random bytes. */
 const CREATION_KEY_BYTES = 16;
 
-/** The last step of receive: the refund address, the review, and the door. */
+/** The last step of receive: the refund address, the review, and the gate. */
 export function TransactionStep() {
   const ok = useStepGuard(4);
   const { draft, update, reset } = useDraft();

@@ -1,6 +1,6 @@
 import { stageText } from "../../copy.ts";
-import type { SwapRecord } from "../../door/store.ts";
-import { isOpen } from "../../door/types.ts";
+import type { SwapRecord } from "../../gate/store.ts";
+import { isOpen } from "../../gate/types.ts";
 import { formatAsset, formatMoment, formatXmr } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { ListRow } from "./bits.tsx";

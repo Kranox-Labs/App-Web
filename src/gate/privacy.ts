@@ -2,7 +2,7 @@ import { formatAgo, formatDay } from "../format.ts";
 import type { SwapRecord } from "./store.ts";
 import type { AddressScan } from "./types.ts";
 
-// The privacy check of the door, after the three rules of the app (apps/wallet/lib/privacy/privacy_check.dart): the
+// The privacy check of the gate, after the three rules of the app (apps/wallet/lib/privacy/privacy_check.dart): the
 // address, the amount, and the timing. In a browser it reads only what this browser knows: the swaps made here and
 // the public history of the address that receives. It advises and blocks nothing.
 

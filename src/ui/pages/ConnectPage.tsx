@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 
 import { ROBINHOOD_CHAIN } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
-import { useDraft } from "../../door/draft.tsx";
-import { checkPrivacy } from "../../door/privacy.ts";
-import { useSwaps } from "../../door/store.ts";
-import { client } from "../../door/use-client.ts";
+import { useDraft } from "../../gate/draft.tsx";
+import { checkPrivacy } from "../../gate/privacy.ts";
+import { useSwaps } from "../../gate/store.ts";
+import { client } from "../../gate/use-client.ts";
 import { navigate, ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";
 import {

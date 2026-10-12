@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 
 import type { AddressScan, ChainAsset, FromChain, PayQuote, PayRate, ProviderId } from "./types.ts";
 
-/** The swap that the user builds, step by step, until the door opens. It lives while the page is open. */
+/** The swap that the user builds, step by step, until the gate opens. It lives while the page is open. */
 export interface Draft {
   /** The chain the coins come from, once chosen. */
   chain: FromChain | null;

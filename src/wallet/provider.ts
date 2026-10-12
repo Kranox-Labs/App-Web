@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 import { EVM_ADDRESS_PATTERN, ROBINHOOD_CHAIN } from "../chain.ts";
 
 // The wallet of the user, found through EIP-6963: each wallet extension announces itself with a name and an icon,
-// and the user picks one. The door asks it for its address and its network, and for a switch to Robinhood Chain.
+// and the user picks one. The app asks it for its address and its network, and for a switch to Robinhood Chain.
 // It never asks the wallet to sign: the coins arrive from the exchanger, so the wallet only receives.
 
 /** A wallet as it speaks to a page (EIP-1193). */
@@ -53,7 +53,7 @@ interface AnnounceEvent extends Event {
 }
 
 /** The wallet that the user connected last, remembered so that a reload connects it again without a prompt. */
-const REMEMBER_KEY = "kranox.door.wallet";
+const REMEMBER_KEY = "kranox.gate.wallet";
 
 /** A wallet that speaks the old way only, through window.ethereum, gets this name. */
 const FALLBACK_RDNS = "window.ethereum";

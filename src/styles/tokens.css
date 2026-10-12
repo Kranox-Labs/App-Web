@@ -1,5 +1,5 @@
 /*
- * Design tokens of the door: the dark look of the Kranox app, Ember, with its colors from
+ * Design tokens of the web app: the dark look of the Kranox app, Ember, with its colors from
  * apps/wallet/lib/ui/theme/palette.dart, its sizes from metrics.dart, and its type from typography.dart.
  * Components use these values and define no raw color or size of their own.
  */

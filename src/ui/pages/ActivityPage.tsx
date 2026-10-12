@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { COPY } from "../../copy.ts";
-import { clearSwaps, useSwaps } from "../../door/store.ts";
+import { clearSwaps, useSwaps } from "../../gate/store.ts";
 import { PageFrame, PillButton, Surface } from "../widgets/bits.tsx";
 import { SwapRow } from "../widgets/SwapRow.tsx";
 

@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 
 import { AMOUNT_PATTERN, EVM_ADDRESS_PATTERN } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
-import { useDraft } from "../../door/draft.tsx";
-import { checkPrivacy, warningCount } from "../../door/privacy.ts";
-import { useSwaps } from "../../door/store.ts";
-import type { AddressScan } from "../../door/types.ts";
-import { client } from "../../door/use-client.ts";
+import { useDraft } from "../../gate/draft.tsx";
+import { checkPrivacy, warningCount } from "../../gate/privacy.ts";
+import { useSwaps } from "../../gate/store.ts";
+import type { AddressScan } from "../../gate/types.ts";
+import { client } from "../../gate/use-client.ts";
 import { formatDay, shortAddress } from "../../format.ts";
 import { useNow } from "../../use-now.ts";
 import { useWallet } from "../../wallet/provider.ts";

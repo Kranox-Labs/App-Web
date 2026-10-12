@@ -32,7 +32,7 @@ export interface SwapRecord {
 }
 
 // The swaps live in the storage of this site in the browser, and nowhere else: no server of Kranox holds them.
-const STORAGE_KEY = "kranox.door.swaps";
+const STORAGE_KEY = "kranox.gate.swaps";
 
 const listeners = new Set<() => void>();
 let cache: readonly SwapRecord[] | null = null;

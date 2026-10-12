@@ -1,6 +1,6 @@
 import { COPY } from "../../../copy.ts";
-import { CHAINS } from "../../../door/catalog.ts";
-import { useDraft } from "../../../door/draft.tsx";
+import { CHAINS } from "../../../gate/catalog.ts";
+import { useDraft } from "../../../gate/draft.tsx";
 import { navigate, ROUTES } from "../../../router.ts";
 import { PageFrame, Pick, PillButton } from "../../widgets/bits.tsx";
 import { Stepper } from "./Stepper.tsx";

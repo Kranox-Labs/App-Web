@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decimalsOf, isXmrAmount } from "../src/door/amount.ts";
+import { decimalsOf, isXmrAmount } from "../src/gate/amount.ts";
 
 test("counts the decimals of an amount", () => {
   assert.equal(decimalsOf("1"), 0);

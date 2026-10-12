@@ -1,8 +1,8 @@
-// The door through the relay of Kranox, as the Mac app talks to it (apps/wallet/lib/bridge/client.dart): each request
+// The gate through the relay of Kranox, as the Mac app talks to it (apps/wallet/lib/bridge/client.dart): each request
 // carries a nonce, and an answer counts only with the signature of the relay over that request and that answer, an
 // error too. The relay holds the key of the exchanger and keeps no log of a request.
 import { AMOUNT_MATCH_TOLERANCE, MONERO_DEPOSIT_PATTERN, RELAY_ANSWER_MAX_BYTES, RELAY_TIMEOUT_MS } from "../chain.ts";
-import type { DoorClient } from "./client.ts";
+import type { GateClient } from "./client.ts";
 import { RelayError } from "./errors.ts";
 import {
   readArray,
@@ -55,7 +55,7 @@ interface Call {
   headers?: Record<string, string>;
 }
 
-export class RelayClient implements DoorClient {
+export class RelayClient implements GateClient {
   readonly sample = false;
   readonly #base: URL;
   readonly #keys: Promise<readonly CryptoKey[]>;
@@ -283,7 +283,7 @@ function transferTimes(fields: Fields, name: string): string[] {
 }
 
 /**
- * What the door shows of a scan of the relay: the count of transfers, and the first and the last time the address
+ * What the app shows of a scan of the relay: the count of transfers, and the first and the last time the address
  * was seen. The lists of the relay start with the newest transfer.
  */
 export function summarizeScan(address: string, fields: Fields): AddressScan {

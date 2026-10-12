@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 
 import { ROBINHOOD_CHAIN } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
-import { useSwaps } from "../../door/store.ts";
-import type { Balances } from "../../door/types.ts";
-import { balanceReader } from "../../door/use-client.ts";
+import { useSwaps } from "../../gate/store.ts";
+import type { Balances } from "../../gate/types.ts";
+import { balanceReader } from "../../gate/use-client.ts";
 import { formatAgo, formatBalance, shortAddress } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";

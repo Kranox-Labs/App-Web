@@ -1,7 +1,7 @@
-// The shapes of the door, in the form of the answers of the relay (apps/relay/src/server.mts), so that the client of
+// The shapes of the gate, in the form of the answers of the relay (apps/relay/src/server.mts), so that the client of
 // the relay and the sample client answer alike.
 
-/** A coin of Robinhood Chain that the door brings in. */
+/** A coin of Robinhood Chain that the gate brings in. */
 export type ChainAsset = "ETH" | "USDG";
 
 /** A chain that the coins come from. Only Monero is open; the others name the road ahead. */
@@ -108,7 +108,7 @@ export interface SwapState {
   validUntil: string | null;
 }
 
-/** The public history of an address on Robinhood Chain, as much of it as the door shows. */
+/** The public history of an address on Robinhood Chain, as much of it as the app shows. */
 export interface AddressScan {
   address: string;
   transfers: number;

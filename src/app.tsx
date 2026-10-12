@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { DraftProvider } from "./door/draft.tsx";
+import { DraftProvider } from "./gate/draft.tsx";
 import { ROUTES, swapIdOf, useRoute } from "./router.ts";
 import { ActivityPage } from "./ui/pages/ActivityPage.tsx";
 import { ConnectPage } from "./ui/pages/ConnectPage.tsx";

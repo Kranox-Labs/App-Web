@@ -1,5 +1,5 @@
 import { CHAIN_ASSETS, XMR_DECIMALS } from "./chain.ts";
-import type { ChainAsset } from "./door/types.ts";
+import type { ChainAsset } from "./gate/types.ts";
 
 /** An amount of XMR with up to eight decimals and no trailing zeros. */
 export function formatXmr(amount: number): string {

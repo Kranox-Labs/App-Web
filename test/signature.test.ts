@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
 import { test } from "node:test";
-import { answerMessage, importSigningKey, verifiesAnswer, type SignedAnswer } from "../src/door/signature.ts";
+import { answerMessage, importSigningKey, verifiesAnswer, type SignedAnswer } from "../src/gate/signature.ts";
 
 // A key of a relay of the test, and its public key as the app holds one: the uncompressed point in base64.
 const pair = generateKeyPairSync("ec", { namedCurve: "P-256" });

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 import { ROBINHOOD_CHAIN } from "../../../chain.ts";
-import { isXmrAmount } from "../../../door/amount.ts";
-import { useDraft, type Draft } from "../../../door/draft.tsx";
+import { isXmrAmount } from "../../../gate/amount.ts";
+import { useDraft, type Draft } from "../../../gate/draft.tsx";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useWallet, type Connection } from "../../../wallet/provider.ts";
 

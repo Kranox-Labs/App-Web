@@ -7,7 +7,7 @@ export const ROBINHOOD_CHAIN = {
   currency: { name: "Ether", symbol: "ETH", decimals: 18 },
 } as const;
 
-/** The coins that the door brings in, and how many decimals the app shows for each. */
+/** The coins that the gate brings in, and how many decimals the app shows for each. */
 export const CHAIN_ASSETS = {
   ETH: { label: "ETH", decimals: 6 },
   USDG: { label: "USDG", decimals: 2 },

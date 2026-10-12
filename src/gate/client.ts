@@ -10,8 +10,8 @@ import type {
   SwapState,
 } from "./types.ts";
 
-/** What the door asks of the relay. The relay holds the key of the exchanger; the browser never sees it. */
-export interface DoorClient {
+/** What the app asks of the relay. The relay holds the key of the exchanger; the browser never sees it. */
+export interface GateClient {
   /** Whether the answers are made up, so that the app says so. */
   readonly sample: boolean;
   payRange(asset: ChainAsset, rate: PayRate): Promise<PayRange>;
@@ -34,7 +34,7 @@ const SAMPLE_QUOTE_MINUTES = 10;
 const SAMPLE_DEPOSIT_MINUTES = 20;
 const SAMPLE_STEP_SECONDS = 30;
 const SAMPLE_DELAY_MS = 500;
-const SAMPLE_KEY = "kranox.door.sample";
+const SAMPLE_KEY = "kranox.gate.sample";
 
 const BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const BASE36 = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -58,7 +58,7 @@ function seedOf(address: string): number {
   return Array.from(address.toLowerCase()).reduce((total, char) => total + char.charCodeAt(0), 0);
 }
 
-export class SampleClient implements DoorClient {
+export class SampleClient implements GateClient {
   readonly sample = true;
 
   // When each sample swap started, kept in the browser so that a reload shows the same step.

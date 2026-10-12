@@ -2,9 +2,9 @@ import { useEffect } from "react";
 
 import { STATUS_INTERVAL_MS } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
-import { findSwap, putSwap, useSwaps, withState } from "../../door/store.ts";
-import { isOpen, type SwapStatus } from "../../door/types.ts";
-import { client } from "../../door/use-client.ts";
+import { findSwap, putSwap, useSwaps, withState } from "../../gate/store.ts";
+import { isOpen, type SwapStatus } from "../../gate/types.ts";
+import { client } from "../../gate/use-client.ts";
 import { formatAsset, formatMoment, formatTimeLeft, formatXmr } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";

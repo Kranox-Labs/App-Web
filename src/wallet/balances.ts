@@ -1,7 +1,7 @@
 // What the wallet holds on Robinhood Chain, read through the wallet itself: it already talks to the chain for its
 // own balance, so the app asks it and no other service learns the address.
 import { ROBINHOOD_CHAIN, USDG } from "../chain.ts";
-import type { Balances } from "../door/types.ts";
+import type { Balances } from "../gate/types.ts";
 import type { EIP1193Provider } from "./provider.ts";
 
 export interface BalanceReader {

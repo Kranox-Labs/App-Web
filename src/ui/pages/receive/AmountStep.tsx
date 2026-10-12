@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 
 import { AMOUNT_PATTERN, XMR_DECIMALS } from "../../../chain.ts";
 import { COPY } from "../../../copy.ts";
-import { decimalsOf } from "../../../door/amount.ts";
-import { useDraft } from "../../../door/draft.tsx";
-import type { ChainAsset, PayRange } from "../../../door/types.ts";
-import { client } from "../../../door/use-client.ts";
+import { decimalsOf } from "../../../gate/amount.ts";
+import { useDraft } from "../../../gate/draft.tsx";
+import type { ChainAsset, PayRange } from "../../../gate/types.ts";
+import { client } from "../../../gate/use-client.ts";
 import { formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { CoinPill, Glass, PageFrame, PillButton, SwapBox } from "../../widgets/bits.tsx";

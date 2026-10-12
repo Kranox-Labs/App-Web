@@ -6,7 +6,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { loadConfig } from "./config.ts";
-import { importSigningKey } from "./door/signature.ts";
+import { importSigningKey } from "./gate/signature.ts";
 
 const root = document.getElementById("root");
 if (root === null) throw new Error("The page has no root element.");
