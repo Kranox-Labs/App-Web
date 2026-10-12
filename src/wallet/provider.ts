@@ -66,6 +66,12 @@ const UNKNOWN_CHAIN_CODE = 4902;
 /** The code with which a wallet says that the user refused (EIP-1193). */
 const USER_REFUSED_CODE = 4001;
 
+/** The codes with which a wallet says that it does not know a method (JSON-RPC) or does not support it (EIP-1193). */
+const METHOD_UNKNOWN_CODES = new Set([-32601, 4200]);
+
+/** The permission of a site to read the accounts of a wallet (EIP-2255). */
+const ACCOUNTS_PERMISSION = [{ eth_accounts: {} }];
+
 const listeners = new Set<() => void>();
 let state: WalletState = { wallets: [], connection: null, busy: false, error: null };
 let discovered = false;
@@ -121,7 +127,7 @@ export function discoverWallets(): void {
 export async function connectWallet(choice: WalletChoice): Promise<void> {
   set({ busy: true, error: null });
   try {
-    const accounts = await choice.provider.request({ method: "eth_requestAccounts" });
+    const accounts = await requestAccounts(choice.provider);
     const address = firstAddress(accounts);
     if (address === null) throw new Error("The wallet gave no address.");
     const chainId = await readChainId(choice.provider);
@@ -131,6 +137,22 @@ export async function connectWallet(choice: WalletChoice): Promise<void> {
   } catch (error) {
     set({ busy: false, error: messageOf(error, "The wallet refused the connection.") });
   }
+}
+
+/**
+ * The addresses of the wallet, after the user chose them: the wallet asks the user for the permission of this site
+ * again, so that a wallet that gave it before shows its accounts again and the user can pick another one (12 Oct
+ * 2026: the owner could not connect another account after "Forget this wallet", because eth_requestAccounts answers
+ * with the accounts already permitted and asks nothing). A wallet without that method takes eth_requestAccounts.
+ */
+async function requestAccounts(provider: EIP1193Provider): Promise<unknown> {
+  try {
+    await provider.request({ method: "wallet_requestPermissions", params: ACCOUNTS_PERMISSION });
+  } catch (error) {
+    if (!METHOD_UNKNOWN_CODES.has(codeOf(error) ?? NaN)) throw error;
+    return provider.request({ method: "eth_requestAccounts" });
+  }
+  return provider.request({ method: "eth_accounts" });
 }
 
 /** Connects a wallet that the user connected before, without a prompt: the wallet gives its addresses or none. */
@@ -149,8 +171,17 @@ async function reconnect(choice: WalletChoice): Promise<void> {
   }
 }
 
-/** Forgets the connection. The wallet itself keeps its own list of connected sites. */
+/**
+ * Forgets the connection, and asks the wallet to forget the permission of this site, so that the next connection
+ * asks the user again; a wallet without that method keeps its own list of sites.
+ */
 export function forgetWallet(): void {
+  const provider = state.connection?.choice.provider;
+  if (provider !== undefined) {
+    provider.request({ method: "wallet_revokePermissions", params: ACCOUNTS_PERMISSION }).catch(() => {
+      // A wallet without the method keeps the permission; the next connection asks again through the permissions.
+    });
+  }
   detach?.();
   detach = null;
   try {

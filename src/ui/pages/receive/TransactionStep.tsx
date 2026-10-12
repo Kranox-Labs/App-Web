@@ -149,6 +149,23 @@ export function TransactionStep() {
             {formatAsset(quote.amount, draft.asset)} {draft.asset}
           </Fact>
           <Fact label={COPY.receive.provider}>{provider.name}</Fact>
+          <Fact label={COPY.receive.fees} stack>
+            <span className="stack stack--tight">
+              {quote.withdrawalFee !== null && quote.withdrawalFee > 0 && (
+                <span className="t-small">
+                  {COPY.receive.feeNetworkLine(formatAsset(quote.withdrawalFee, quote.asset), quote.asset)}
+                </span>
+              )}
+              {quote.depositFee !== null && quote.depositFee > 0 && (
+                <span className="t-small">{COPY.receive.feeDepositLine(formatXmr(quote.depositFee))}</span>
+              )}
+              {(quote.withdrawalFee === null || quote.withdrawalFee === 0) &&
+                (quote.depositFee === null || quote.depositFee === 0) && (
+                  <span className="t-small">{COPY.receive.feesIncluded}</span>
+                )}
+              <span className="t-small soft">{COPY.receive.feeMoneroLine}</span>
+            </span>
+          </Fact>
           <Fact label={COPY.receive.rateLabel}>
             {draft.rate === "floating"
               ? COPY.receive.floating
@@ -165,6 +182,7 @@ export function TransactionStep() {
             </Fact>
           )}
         </dl>
+        {!refundValid && !ranOut && <p className="t-small soft text-center">{COPY.receive.refundNeeded}</p>}
         {ranOut && failure === null && <Notice tone="warn">{COPY.receive.quoteRanOut}</Notice>}
         {failure !== null && (
           <Notice tone="warn">

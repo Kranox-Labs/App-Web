@@ -241,6 +241,14 @@ strong {
   text-align: center;
 }
 
+/* A row of small buttons under a form, centered. */
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
 .stack {
   display: flex;
   flex-direction: column;

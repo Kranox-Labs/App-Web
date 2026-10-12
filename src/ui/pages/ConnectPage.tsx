@@ -8,7 +8,13 @@ import { useSwaps } from "../../gate/store.ts";
 import { client } from "../../gate/use-client.ts";
 import { navigate, ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";
-import { connectWallet, forgetWallet, switchToRobinhoodChain, useWallet } from "../../wallet/provider.ts";
+import {
+  connectWallet,
+  forgetWallet,
+  switchToRobinhoodChain,
+  useWallet,
+  type WalletChoice,
+} from "../../wallet/provider.ts";
 import { AddressBox, Glass, Notice, PageFrame, PillButton, Surface } from "../widgets/bits.tsx";
 import { Icon } from "../widgets/Icon.tsx";
 
@@ -16,8 +22,50 @@ import { Icon } from "../widgets/Icon.tsx";
  * The connect page: the wallets of this browser to pick from, then the address that receives and its history. A
  * step of receive that sent the user here gets them back on "Continue".
  */
+/** The wallets of this browser to pick from, or the way to get one. A pick connects it, and [onPicked] hears of it. */
+function WalletList({ onPicked }: { onPicked?: () => void }) {
+  const { wallets, busy } = useWallet();
+  const pick = async (wallet: WalletChoice) => {
+    await connectWallet(wallet);
+    onPicked?.();
+  };
+  return (
+    <>
+      <p className="t-small-strong soft">{COPY.wallet.choose}</p>
+      {wallets.length > 0 ? (
+        <div className="wallets">
+          {wallets.map((wallet) => (
+            <button
+              key={wallet.info.uuid}
+              type="button"
+              className="walletpick"
+              disabled={busy}
+              onClick={() => void pick(wallet)}
+            >
+              <span className="walletpick__icon" aria-hidden="true">
+                {wallet.info.icon !== "" ? <img src={wallet.info.icon} alt="" /> : <Icon name="wallet" size={18} />}
+              </span>
+              <span className="t-card-title">{wallet.info.name}</span>
+              <Icon name="chevronDown" size={20} className="walletpick__arrow" />
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="stack stack--tight">
+          <p className="t-body">{COPY.wallet.none}</p>
+          <p className="t-small soft">{COPY.wallet.noneHint(window.location.host)}</p>
+        </div>
+      )}
+      {busy && <p className="t-small soft">{COPY.wallet.connecting}</p>}
+    </>
+  );
+}
+
 export function ConnectPage() {
-  const { wallets, connection, busy, error } = useWallet();
+  const { connection, busy, error } = useWallet();
+  // Whether the user asked for another wallet or account while one is connected: the list shows again, and the
+  // wallet asks which accounts this site may see, so that another one can take the place of the connected one.
+  const [choosing, setChoosing] = useState(false);
   const { draft, update } = useDraft();
   const swaps = useSwaps();
   const now = useNow(60_000);
@@ -55,32 +103,7 @@ export function ConnectPage() {
     return (
       <PageFrame title={COPY.connect.title} lead={COPY.connect.lead}>
         <Surface>
-          <p className="t-small-strong soft">{COPY.wallet.choose}</p>
-          {wallets.length > 0 ? (
-            <div className="wallets">
-              {wallets.map((wallet) => (
-                <button
-                  key={wallet.info.uuid}
-                  type="button"
-                  className="walletpick"
-                  disabled={busy}
-                  onClick={() => void connectWallet(wallet)}
-                >
-                  <span className="walletpick__icon" aria-hidden="true">
-                    {wallet.info.icon !== "" ? <img src={wallet.info.icon} alt="" /> : <Icon name="wallet" size={18} />}
-                  </span>
-                  <span className="t-card-title">{wallet.info.name}</span>
-                  <Icon name="chevronDown" size={20} className="walletpick__arrow" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="stack stack--tight">
-              <p className="t-body">{COPY.wallet.none}</p>
-              <p className="t-small soft">{COPY.wallet.noneHint(window.location.host)}</p>
-            </div>
-          )}
-          {busy && <p className="t-small soft">{COPY.wallet.connecting}</p>}
+          <WalletList />
           {error !== null && <Notice tone="warn">{error}</Notice>}
         </Surface>
       </PageFrame>
@@ -130,7 +153,21 @@ export function ConnectPage() {
         <PillButton expand disabled={!onChain} onClick={goOn}>
           {returnTo === null ? COPY.connect.backHome : COPY.connect.continue}
         </PillButton>
-        <div className="text-center">
+        {choosing && (
+          <Surface>
+            <WalletList onPicked={() => setChoosing(false)} />
+          </Surface>
+        )}
+        <div className="pill-row">
+          {choosing ? (
+            <PillButton tone="quiet" small onClick={() => setChoosing(false)}>
+              {COPY.wallet.keep}
+            </PillButton>
+          ) : (
+            <PillButton tone="quiet" small icon="wallet" onClick={() => setChoosing(true)}>
+              {COPY.wallet.change}
+            </PillButton>
+          )}
           <PillButton tone="quiet" small icon="logout" onClick={forgetWallet}>
             {COPY.wallet.forget}
           </PillButton>
