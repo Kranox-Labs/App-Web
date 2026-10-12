@@ -12,6 +12,7 @@ import { formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { CoinPill, Glass, PageFrame, PillButton, SwapBox } from "../../widgets/bits.tsx";
 import { Icon } from "../../widgets/Icon.tsx";
+import { COIN_LOGOS } from "../../coin-logos.ts";
 import { Stepper } from "./Stepper.tsx";
 import { useStepGuard, validAmount } from "./steps.ts";
 
@@ -66,7 +67,7 @@ export function AmountStep() {
       <Glass>
         <SwapBox
           label={COPY.receive.youSend}
-          coin={<CoinPill code="XMR" sub={COPY.receive.onMonero} />}
+          coin={<CoinPill code="XMR" sub={COPY.receive.onMonero} logo={COIN_LOGOS.XMR} />}
           notes={
             error !== null ? (
               <p className="t-small danger-text">{error}</p>
@@ -90,17 +91,22 @@ export function AmountStep() {
           <Icon name="arrowDown" size={18} />
         </div>
         <SwapBox
-          label={COPY.receive.youGet}
+          label={COPY.receive.arrivesAs}
           coin={
             <CoinPill
               code={asset}
               sub={COPY.receive.onChain}
-              menu={{ options: ASSETS, value: asset, onChange: (choice) => update({ asset: choice, quote: null }) }}
+              logo={COIN_LOGOS[asset]}
+              menu={{
+                options: ASSETS,
+                value: asset,
+                logoOf: (choice) => COIN_LOGOS[choice],
+                onChange: (choice) => update({ asset: choice, quote: null }),
+              }}
             />
           }
-          notes={<p className="t-small soft">{COPY.receive.quoteNext}</p>}
         >
-          <p className="t-send-figure faint">{COPY.receive.amountHint}</p>
+          <p className="t-body-regular soft">{COPY.receive.arrivesText}</p>
         </SwapBox>
         <PillButton expand disabled={!valid || outside} onClick={() => navigate(ROUTES.receiveProvider)}>
           {COPY.receive.continue}

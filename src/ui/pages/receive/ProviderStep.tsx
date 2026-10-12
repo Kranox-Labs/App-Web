@@ -15,6 +15,7 @@ import { useWallet } from "../../../wallet/provider.ts";
 import { ChoiceCard, Glass, PageFrame, PillButton } from "../../widgets/bits.tsx";
 import { Icon } from "../../widgets/Icon.tsx";
 import { Link } from "../../widgets/Link.tsx";
+import { PROVIDER_LOGOS } from "../../provider-logos.ts";
 import { Stepper } from "./Stepper.tsx";
 import { onRobinhoodChain, useStepGuard } from "./steps.ts";
 
@@ -204,8 +205,8 @@ export function ProviderStep() {
                 onClick={() => pick(each.id)}
               >
                 <span className="provider__head">
-                  <span className="pick__mark t-small-strong" aria-hidden="true">
-                    {words.name.charAt(0)}
+                  <span className="pick__mark" aria-hidden="true">
+                    <img className="pick__logo" src={PROVIDER_LOGOS[each.id]} alt="" />
                   </span>
                   <span className="pick__body">
                     <span className="t-card-title">{words.name}</span>

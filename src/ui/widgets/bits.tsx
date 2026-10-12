@@ -418,11 +418,14 @@ export function SwapBox({
 export function CoinPill<T extends string>({
   code,
   sub,
+  logo,
   menu,
 }: {
   code: string;
   sub: string;
-  menu?: { options: readonly T[]; value: T; onChange: (value: T) => void } | undefined;
+  /** The mark of the coin. */
+  logo: string;
+  menu?: { options: readonly T[]; value: T; logoOf: (value: T) => string; onChange: (value: T) => void } | undefined;
 }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -436,8 +439,11 @@ export function CoinPill<T extends string>({
   }, [open]);
   const body = (
     <>
-      <span className="coin__code t-card-title">{code}</span>
-      <span className="coin__sub t-small soft">{sub}</span>
+      <img className="coin__logo" src={logo} alt="" />
+      <span className="coin__text">
+        <span className="coin__code t-card-title">{code}</span>
+        <span className="coin__sub t-small soft">{sub}</span>
+      </span>
     </>
   );
   if (menu === undefined) return <span className="coin">{body}</span>;
@@ -450,7 +456,7 @@ export function CoinPill<T extends string>({
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        <span className="coin__text">{body}</span>
+        {body}
         <Icon name="chevronDown" size={20} className="soft" />
       </button>
       {open && (
@@ -467,9 +473,18 @@ export function CoinPill<T extends string>({
                   setOpen(false);
                 }}
               >
-                <span className="t-card-title">{option}</span>
-                <span className="t-small soft">{sub}</span>
-                {option === menu.value && <Icon name="check" size={16} className="accent coin-menu__check" />}
+                <img className="coin__logo" src={menu.logoOf(option)} alt="" />
+                <span className="coin__text">
+                  <span className="t-card-title">{option}</span>
+                  <span className="t-small soft">{sub}</span>
+                </span>
+                <Icon
+                  name="check"
+                  size={16}
+                  className={
+                    option === menu.value ? "accent coin-menu__check" : "coin-menu__check coin-menu__check--off"
+                  }
+                />
               </button>
             </li>
           ))}

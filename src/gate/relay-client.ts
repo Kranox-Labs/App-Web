@@ -3,6 +3,7 @@
 // error too. The relay holds the key of the exchanger and keeps no log of a request.
 import { AMOUNT_MATCH_TOLERANCE, MONERO_DEPOSIT_PATTERN, RELAY_ANSWER_MAX_BYTES, RELAY_TIMEOUT_MS } from "../chain.ts";
 import type { GateClient } from "./client.ts";
+import { COPY } from "../copy.ts";
 import { RelayError } from "./errors.ts";
 import {
   readArray,
@@ -43,6 +44,9 @@ const JSON_MEDIA_TYPE = "application/json";
 
 /** A nonce has this many random bytes, as in the app. */
 const NONCE_BYTES = 16;
+
+/** The status with which nginx refuses a client over its limit, before the relay sees the request. */
+const TOO_MANY_REQUESTS = 429;
 
 /** The coins as the relay names them. */
 const RELAY_ASSETS: Record<ChainAsset, string> = { ETH: "eth", USDG: "usdg" };
@@ -212,6 +216,11 @@ export class RelayClient implements GateClient {
     } catch (error) {
       if (error instanceof RelayError) throw error;
       throw new RelayError("down", error instanceof Error ? error.message : String(error));
+    }
+    // The limit of nginx in front of the relay answers 429 itself, without a signature; the app shows its own line for
+    // it and reads nothing of the answer (12 Oct 2026).
+    if (response.status === TOO_MANY_REQUESTS && response.headers.get(SIGNATURE_HEADER) === null) {
+      throw new RelayError("refused", COPY.relay.busy);
     }
     const answer: SignedAnswer = { nonce, method, target, requestBody, status: response.status, body: text };
     if (!(await verifiesAnswer(await this.#keys, answer, response.headers.get(SIGNATURE_HEADER)))) {

@@ -94,7 +94,8 @@ export const COPY = {
     aboveMax: (max: string) => `The most that goes through is ${max} XMR.`,
     badAmount: "Digits and one point only.",
     tooManyDecimals: (max: number) => `At most ${max} decimals.`,
-    quoteNext: "The provider shows what you get, on the next step.",
+    arrivesAs: "Arrives as",
+    arrivesText: "The coin that arrives in your wallet. Each provider shows how much on the next step.",
     quoting: "Getting the quote…",
     youGetLine: (amount: string, asset: ChainAsset) => `${amount} ${asset}`,
     rateLine: (rate: string, asset: ChainAsset) => `1 XMR ≈ ${rate} ${asset}`,
@@ -214,6 +215,7 @@ export const COPY = {
 
   relay: {
     down: "The relay did not answer. Check your connection and try again.",
+    busy: "Too many requests from your connection right now. Try again in a minute.",
     failed: "The relay answered in a way the app cannot use. Try again in a moment.",
   },
 

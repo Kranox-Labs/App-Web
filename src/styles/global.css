@@ -835,9 +835,9 @@ strong {
 /* The coin of a box: its code and where it lives. */
 .coin {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   flex: none;
   padding: 10px 16px;
   border-radius: var(--radius-field);
@@ -860,7 +860,15 @@ strong {
 .coin__text {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
+}
+
+.coin__logo {
+  display: block;
+  width: var(--coin-logo);
+  height: var(--coin-logo);
+  flex: none;
 }
 
 .coin__sub {
@@ -887,9 +895,9 @@ strong {
 
 .coin-menu__item {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  column-gap: 8px;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 10px;
   width: 100%;
   padding: 8px 10px;
   border-radius: 10px;
@@ -901,8 +909,11 @@ strong {
 }
 
 .coin-menu__check {
-  grid-row: 1 / span 2;
-  align-self: center;
+  flex: none;
+}
+
+.coin-menu__check--off {
+  visibility: hidden;
 }
 
 /* The two cards of a choice, such as the rate. */
