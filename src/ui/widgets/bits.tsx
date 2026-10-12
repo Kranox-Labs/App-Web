@@ -329,22 +329,22 @@ export function ListRow({
 export function Pick({
   on,
   soon = false,
-  mark,
+  logo,
   title,
   text,
   onClick,
 }: {
   on: boolean;
   soon?: boolean;
-  mark: string;
+  logo: string;
   title: string;
   text: string;
   onClick: () => void;
 }) {
   return (
     <button type="button" className={on ? "pick pick--on" : "pick"} aria-pressed={on} disabled={soon} onClick={onClick}>
-      <span className="pick__mark t-small-strong" aria-hidden="true">
-        {mark}
+      <span className="pick__mark" aria-hidden="true">
+        <img className="pick__logo" src={logo} alt="" />
       </span>
       <span className="pick__body">
         <span className="t-card-title">{title}</span>

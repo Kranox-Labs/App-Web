@@ -1,7 +1,7 @@
 import logo from "../../assets/kranox-logo-small.svg";
 import { ROBINHOOD_CHAIN } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
-import { client, relayHost } from "../../gate/use-client.ts";
+import { relayHost } from "../../gate/use-client.ts";
 import { shortAddress } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { useWallet, type Connection } from "../../wallet/provider.ts";
@@ -100,10 +100,11 @@ function StatusCard() {
   return (
     <div className="status">
       <div className="status__row">
-        <span className="t-small-strong">{client.sample ? COPY.sidebar.sampleTitle : COPY.sidebar.relayTitle}</span>
-        <span className={client.sample ? "status__dot status__dot--off" : "status__dot"} aria-hidden="true" />
+        <span className="t-small-strong">{COPY.sidebar.relayTitle}</span>
+        {import.meta.env.DEV && <span className="tag">{COPY.sidebar.development}</span>}
+        <span className="status__dot" aria-hidden="true" />
       </div>
-      <p className="t-small faint">{relayHost === null ? COPY.sidebar.sampleNote : relayHost}</p>
+      <p className="t-small faint">{relayHost}</p>
     </div>
   );
 }

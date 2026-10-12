@@ -1,7 +1,10 @@
 import type { ChainAsset, FromChain, ProviderId, SwapStatus } from "./gate/types.ts";
 
-/** Where the support of the exchanger answers. CHECKED 5 Oct 2026 for the app; the same address here. */
-export const EXCHANGER_SUPPORT = "support@changenow.io";
+/** The words about one provider: its name and where its support answers. */
+export interface ProviderWords {
+  name: string;
+  support: string;
+}
 
 /** The words of the app, in sentence case. Each page reads its words here. */
 export const COPY = {
@@ -29,9 +32,8 @@ export const COPY = {
     noWallet: "No wallet",
     connectToReceive: "Connect one to receive",
     anotherNetwork: "Another network",
-    sampleTitle: "Sample data",
-    sampleNote: "The relay is not connected yet. Every number and address here is made up, and nothing is sent.",
     relayTitle: "Relay",
+    development: "Development",
   },
 
   wallet: {
@@ -41,7 +43,6 @@ export const COPY = {
     none: "No wallet found in this browser.",
     noneHint: (host: string) =>
       `On a phone, open ${host} inside the browser of your wallet app, such as MetaMask or Rabby. On a desktop, add a wallet extension to the browser and come back.`,
-    sample: "Use a sample address",
     wrongChain: "Your wallet is on another network. The coins arrive on Robinhood Chain.",
     switchChain: "Switch to Robinhood Chain",
     forget: "Forget this wallet",
@@ -81,7 +82,6 @@ export const COPY = {
     providerLead: "Who turns your XMR into the coin on Robinhood Chain.",
     privacyLead: "What this swap gives away, checked in this browser before you open the gate.",
     transactionLead: "Where a refund goes if the swap fails, then the review.",
-    sampleLead: "Sample data: nothing is sent, and no swap is made anywhere.",
     continue: "Continue",
     soon: "Soon",
     youSend: "You send",
@@ -94,10 +94,8 @@ export const COPY = {
     aboveMax: (max: string) => `The most that goes through is ${max} XMR.`,
     badAmount: "Digits and one point only.",
     tooManyDecimals: (max: number) => `At most ${max} decimals.`,
-    sampleWalletRefused: "The sample wallet cannot open a real swap. Connect a wallet of yours.",
     quoteNext: "The provider shows what you get, on the next step.",
     quoting: "Getting the quote…",
-    quoteFailed: "The quote did not come. Try again in a moment.",
     youGetLine: (amount: string, asset: ChainAsset) => `${amount} ${asset}`,
     rateLine: (rate: string, asset: ChainAsset) => `1 XMR ≈ ${rate} ${asset}`,
     fixedLine: (time: string) => `Fixed rate, good for ${time}`,
@@ -105,6 +103,11 @@ export const COPY = {
     speedLine: (minutes: string) => `About ${minutes} minutes after your XMR confirms.`,
     rangeFrom: (min: string) => `From ${min} XMR`,
     sees: "What it sees",
+    bestRate: "Best rate",
+    otherProviderTakes: (name: string) => `${name} takes this amount. Tap it to go on.`,
+    noProviderTakes: "No provider takes this amount right now.",
+    changeAmount: "Change the amount",
+    tryAgain: "Try again",
     rate: "Rate",
     fixedRate: "Fixed rate",
     fixedText: "Exact amount",
@@ -141,13 +144,21 @@ export const COPY = {
     ALEO: { name: "Aleo", coin: "ALEO", text: "On the road ahead." },
   } satisfies Record<FromChain, { name: string; coin: string; text: string }>,
 
+  // The support addresses: ChangeNOW CHECKED 5 Oct 2026 for the app; SimpleSwap CHECKED 12 Oct 2026, its site.
   providers: {
     changenow: {
       name: "ChangeNOW",
       text: "An exchange without an account.",
       sees: "The amount, the time, the deposit, and the address that receives. Never your keys, and never your IP address: Kranox asks it through its relay.",
+      support: "support@changenow.io",
     },
-  } satisfies Record<ProviderId, { name: string; text: string; sees: string }>,
+    simpleswap: {
+      name: "SimpleSwap",
+      text: "An exchange without an account.",
+      sees: "The amount, the time, the deposit, and the address that receives. Never your keys, and never your IP address: Kranox asks it through its relay.",
+      support: "support@simpleswap.io",
+    },
+  } satisfies Record<ProviderId, { name: string; text: string; sees: string; support: string }>,
 
   connect: {
     title: "Connect",
@@ -183,8 +194,11 @@ export const COPY = {
       amount === null
         ? "The provider sent the XMR back to your refund address."
         : `The provider sent ${amount} XMR back to your refund address.`,
-    verifying: `ChangeNOW stopped this swap to check it. Write to ${EXCHANGER_SUPPORT} with the swap ID; Kranox cannot release it.`,
-    expiredStep: `ChangeNOW stopped waiting before it took in the XMR. If you sent it after all, write to ${EXCHANGER_SUPPORT} with the swap ID.`,
+    verifying: (provider: ProviderWords) =>
+      `${provider.name} stopped this swap to check it. Write to ${provider.support} with the swap ID; Kranox cannot release it.`,
+    expiredStep: (provider: ProviderWords) =>
+      `${provider.name} stopped waiting before it took in the XMR. If you sent it after all, write to ${provider.support} with the swap ID.`,
+    provider: "Provider",
     youGet: "You get",
     recipient: "Arrives at",
     refundTo: "Refund to",
@@ -195,6 +209,7 @@ export const COPY = {
     payoutHash: "The transaction on Robinhood Chain",
     refundHash: "The refund on Monero",
     unknown: "This browser holds no swap with this ID.",
+    readFailed: "The last check did not come through. The app tries again in a moment.",
   },
 
   relay: {

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { STATUS_INTERVAL_MS } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
@@ -9,9 +9,6 @@ import { formatAsset, formatMoment, formatTimeLeft, formatXmr } from "../../form
 import { ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";
 import { AddressBox, Fact, Glass, Notice, PageFrame, QrCode, Steps, Surface, type StepEnd } from "../widgets/bits.tsx";
-
-/** The sample swaps move faster than real ones, so their page reads them more often. */
-const SAMPLE_INTERVAL_MS = 5000;
 
 const STEPS = [
   { title: COPY.swap.steps.waiting },
@@ -52,28 +49,32 @@ export function SwapPage({ id }: { id: string }) {
   const now = useNow();
   const record = swaps.find((swap) => swap.id === id) ?? null;
   const readToken = record?.readToken ?? null;
+  const provider = record?.provider ?? null;
   const open = record !== null && isOpen(record.status);
+  const [readFailed, setReadFailed] = useState(false);
 
   // While the swap moves, the page reads its state now and then. The record in the store is always the newest.
   useEffect(() => {
-    if (readToken === null || !open) return;
+    if (readToken === null || provider === null || !open) return;
     let live = true;
     const read = async () => {
       try {
-        const state = await client.readSwap(id, readToken);
+        const state = await client.readSwap(provider, id, readToken);
         const current = findSwap(id);
         if (live && current !== null) putSwap(withState(current, state));
+        if (live) setReadFailed(false);
       } catch {
-        // The next read may come through.
+        // The next read may come through; the page says so meanwhile.
+        if (live) setReadFailed(true);
       }
     };
     void read();
-    const timer = window.setInterval(() => void read(), client.sample ? SAMPLE_INTERVAL_MS : STATUS_INTERVAL_MS);
+    const timer = window.setInterval(() => void read(), STATUS_INTERVAL_MS);
     return () => {
       live = false;
       window.clearInterval(timer);
     };
-  }, [id, readToken, open]);
+  }, [id, readToken, provider, open]);
 
   const back = { href: ROUTES.activity, label: COPY.swap.back };
 
@@ -116,13 +117,18 @@ export function SwapPage({ id }: { id: string }) {
       )}
       <Surface>
         <Steps steps={STEPS} current={step} end={end} />
+        {readFailed && open && <p className="t-small danger-text">{COPY.swap.readFailed}</p>}
         {record.status === "finished" && <Notice tone="good">{COPY.swap.arrived(amount, record.asset)}</Notice>}
         {record.status === "failed" && <Notice tone="warn">{COPY.swap.failed}</Notice>}
         {record.status === "refunded" && (
           <Notice>{COPY.swap.refunded(record.refundAmount === null ? null : formatXmr(record.refundAmount))}</Notice>
         )}
-        {record.status === "verifying" && <Notice tone="warn">{COPY.swap.verifying}</Notice>}
-        {record.status === "expired" && <Notice tone="warn">{COPY.swap.expiredStep}</Notice>}
+        {record.status === "verifying" && (
+          <Notice tone="warn">{COPY.swap.verifying(COPY.providers[record.provider])}</Notice>
+        )}
+        {record.status === "expired" && (
+          <Notice tone="warn">{COPY.swap.expiredStep(COPY.providers[record.provider])}</Notice>
+        )}
       </Surface>
       <Surface>
         <dl className="facts">
@@ -137,6 +143,7 @@ export function SwapPage({ id }: { id: string }) {
               <span className="t-mono">{record.refundAddress}</span>
             </Fact>
           )}
+          <Fact label={COPY.swap.provider}>{COPY.providers[record.provider].name}</Fact>
           <Fact label={COPY.swap.id}>
             <span className="t-mono">{record.id}</span>
           </Fact>

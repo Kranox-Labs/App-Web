@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ROBINHOOD_CHAIN } from "../../../chain.ts";
 import { isXmrAmount } from "../../../gate/amount.ts";
 import { useDraft, type Draft } from "../../../gate/draft.tsx";
+import { quoteMatches } from "../../../gate/quote.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useWallet, type Connection } from "../../../wallet/provider.ts";
 
@@ -28,7 +29,14 @@ export function onRobinhoodChain(connection: Connection | null): connection is C
 export function openUpTo(draft: Draft, connection: Connection | null): number {
   if (draft.chain === null) return 0;
   if (!validAmount(draft.xmrAmount)) return 1;
-  if (draft.provider === null || draft.quote?.amount == null) return 2;
+  if (
+    draft.provider === null ||
+    draft.quote === null ||
+    draft.quote.amount === null ||
+    !quoteMatches(draft.quote, draft)
+  ) {
+    return 2;
+  }
   if (!onRobinhoodChain(connection)) return 3;
   return 4;
 }

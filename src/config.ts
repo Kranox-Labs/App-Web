@@ -2,7 +2,6 @@
 // variable before the app starts: a missing or wrong one stops the app with a clear message. .env.example lists them.
 
 /** The names of the variables, as the build of Vite exposes them. */
-export const ENV_SAMPLE_DATA = "VITE_SAMPLE_DATA";
 export const ENV_RELAY_URL = "VITE_RELAY_URL";
 export const ENV_RELAY_SIGNING_KEYS = "VITE_RELAY_SIGNING_KEYS";
 
@@ -16,25 +15,16 @@ const UNCOMPRESSED_POINT = 4;
 /** The hosts that may talk to a relay over plain HTTP: a relay on the machine of a developer. */
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-/**
- * The settings: the app runs on sample data, with no relay and no network at all, or it talks to the relay at
- * [relayUrl] and trusts an answer only under one of [relaySigningKeys].
- */
-export type AppConfig =
-  { sampleData: true } | { sampleData: false; relayUrl: string; relaySigningKeys: readonly string[] };
+/** The settings: the app talks to the relay at [relayUrl] and trusts an answer only under one of [relaySigningKeys]. */
+export interface AppConfig {
+  readonly relayUrl: string;
+  readonly relaySigningKeys: readonly string[];
+}
 
 type Env = Readonly<Record<string, string | undefined>>;
 
 function missing(name: string): Error {
   return new Error(`The variable ${name} is missing. .env.example lists the variables of the app.`);
-}
-
-/** A variable that is "true" or "false", or absent for false. */
-function readFlag(env: Env, name: string): boolean {
-  const value = env[name]?.trim() ?? "";
-  if (value === "" || value === "false") return false;
-  if (value === "true") return true;
-  throw new Error(`The variable ${name} must be "true" or "false".`);
 }
 
 /** The address of the relay: HTTPS, or plain HTTP on the machine of a developer, without a user or a query. */
@@ -83,8 +73,7 @@ function isSigningKey(key: string): boolean {
 
 /** The settings from the variables of [env], checked. */
 export function parseConfig(env: Env): AppConfig {
-  if (readFlag(env, ENV_SAMPLE_DATA)) return { sampleData: true };
-  return { sampleData: false, relayUrl: readRelayUrl(env), relaySigningKeys: readSigningKeys(env) };
+  return { relayUrl: readRelayUrl(env), relaySigningKeys: readSigningKeys(env) };
 }
 
 /** The settings of this build. */

@@ -54,11 +54,3 @@ export class WalletBalanceReader implements BalanceReader {
     };
   }
 }
-
-/** Balances made up from the address, the same for the same address, while the app runs on sample data. */
-export class SampleBalanceReader implements BalanceReader {
-  async readBalances(address: string): Promise<Balances> {
-    const seed = Array.from(address.toLowerCase()).reduce((total, char) => total + char.charCodeAt(0), 0);
-    return { eth: 0.1 + (seed % 50) / 100, usdg: 400 + (seed % 900) + (seed % 100) / 100 };
-  }
-}

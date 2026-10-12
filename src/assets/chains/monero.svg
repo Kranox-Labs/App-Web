@@ -1,0 +1,10 @@
+<!-- The symbol of Monero, as the press kit of getmonero.org shows it (orange #FF6600, gray #4C4C4C, the M white). The press kit gives PNG only; the shapes follow its geometry. Copied 12 Oct 2026. The mark belongs to the Monero project. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 3 18 18">
+  <defs>
+    <path id="m" d="M12 3a8.99 8.99 0 0 1 8.543 11.813h-2.918V7.288l-5.633 5.869-5.617-5.861v7.517H3.457A8.9 8.9 0 0 1 3 12.008C3 7.03 7.026 3 12 3m.025 12.822 3.912-3.914V16.5h3.749C18.022 19.246 15.254 21.002 12 21c-3.244 0-6.098-1.91-7.686-4.5h3.748v-4.592z"/>
+    <clipPath id="band"><rect x="0" y="14.813" width="24" height="10"/></clipPath>
+  </defs>
+  <circle cx="12" cy="12" r="8.95" fill="#fff"/>
+  <use href="#m" fill="#F60"/>
+  <use href="#m" fill="#4C4C4C" clip-path="url(#band)"/>
+</svg>

@@ -2,6 +2,7 @@ import { COPY } from "../../../copy.ts";
 import { CHAINS } from "../../../gate/catalog.ts";
 import { useDraft } from "../../../gate/draft.tsx";
 import { navigate, ROUTES } from "../../../router.ts";
+import { CHAIN_LOGOS } from "../../chain-logos.ts";
 import { PageFrame, Pick, PillButton } from "../../widgets/bits.tsx";
 import { Stepper } from "./Stepper.tsx";
 
@@ -19,7 +20,7 @@ export function ChainStep() {
               key={chain.code}
               on={draft.chain === chain.code}
               soon={!chain.open}
-              mark={words.coin}
+              logo={CHAIN_LOGOS[chain.code]}
               title={words.name}
               text={words.text}
               onClick={() => update({ chain: chain.code })}

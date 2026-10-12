@@ -1721,6 +1721,12 @@ strong {
   color: var(--nav-tile-ink);
 }
 
+.pick__logo {
+  display: block;
+  width: var(--chain-logo);
+  height: var(--chain-logo);
+}
+
 .pick__body {
   display: flex;
   flex-direction: column;

@@ -65,8 +65,8 @@ function checkAddress(recipient: string, swaps: readonly SwapRecord[], scan: Add
       title: used === 1 ? "In 1 of your swaps" : `In ${used} of your swaps`,
       text:
         used === 1
-          ? "This address received a swap of yours before. The records of ChangeNOW tie the two together through it. Use a new account of your wallet for this one."
-          : `This address received ${used} swaps of yours. The records of ChangeNOW tie them together through it. Use a new account of your wallet for this one.`,
+          ? "This address received a swap of yours before. The records of the provider tie the two together through it. Use a new account of your wallet for this one."
+          : `This address received ${used} swaps of yours. The records of the provider tie them together through it. Use a new account of your wallet for this one.`,
     };
   }
   if (scan !== null && scan.transfers > 0) {

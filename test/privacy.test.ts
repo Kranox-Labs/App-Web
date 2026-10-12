@@ -11,6 +11,7 @@ const OTHER = "0x57f31ad4b64095347F87eDB1675566DAfF5EC886";
 function swap(hoursAgo: number, xmrAmount: number, payoutAddress: string): SwapRecord {
   return {
     id: `swap${hoursAgo}`,
+    provider: "changenow",
     readToken: "token",
     asset: "USDG",
     rate: "fixed",

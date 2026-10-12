@@ -1,5 +1,5 @@
 // The shapes of the gate, in the form of the answers of the relay (apps/relay/src/server.mts), so that the client of
-// the relay and the sample client answer alike.
+// a client of the relay drops in behind one interface.
 
 /** A coin of Robinhood Chain that the gate brings in. */
 export type ChainAsset = "ETH" | "USDG";
@@ -8,13 +8,16 @@ export type ChainAsset = "ETH" | "USDG";
 export type FromChain = "XMR" | "ZEC" | "STRK" | "ALEO";
 
 /** An exchange that turns the coins of a chain into a coin of Robinhood Chain. */
-export type ProviderId = "changenow";
+export type ProviderId = "changenow" | "simpleswap";
+
+export const PROVIDER_IDS: readonly ProviderId[] = ["changenow", "simpleswap"];
 
 /** The rate of a swap: fixed holds the quote for a while, floating takes the rate at the time of the deposit. */
 export type PayRate = "fixed" | "floating";
 
 /** The least and the most XMR that a swap takes at a rate; a floating rate may have no most. */
 export interface PayRange {
+  provider: ProviderId;
   asset: ChainAsset;
   rate: PayRate;
   minXmr: number;
@@ -26,6 +29,7 @@ export type PayLimit = "below" | "above";
 
 /** What an amount of XMR buys. Outside the range of the rate, [amount] is null and [limit] names the side. */
 export interface PayQuote {
+  provider: ProviderId;
   asset: ChainAsset;
   rate: PayRate;
   xmrAmount: string;
@@ -47,6 +51,7 @@ export interface PayQuote {
  * creation, so that a second try after a lost answer gets the same swap instead of a second one.
  */
 export interface PayRequest {
+  provider: ProviderId;
   asset: ChainAsset;
   rate: PayRate;
   xmrAmount: string;
@@ -59,6 +64,7 @@ export interface PayRequest {
 /** A swap that the exchanger opened: where to send the XMR, and the token that reads its state. */
 export interface CreatedPay {
   id: string;
+  provider: ProviderId;
   asset: ChainAsset;
   amount: number;
   xmrAmount: number;

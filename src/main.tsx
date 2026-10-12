@@ -15,7 +15,7 @@ if (root === null) throw new Error("The page has no root element.");
 try {
   const config = loadConfig();
   // A key of the relay that is no point of its curve fails here, with its reason, and not later in every call.
-  if (!config.sampleData) await Promise.all(config.relaySigningKeys.map(importSigningKey));
+  await Promise.all(config.relaySigningKeys.map(importSigningKey));
 } catch (error) {
   root.replaceChildren(setupFailure(error));
   throw error;

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:relay": "vite --mode relay",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check": "tsc --noEmit",

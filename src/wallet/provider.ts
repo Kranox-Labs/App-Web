@@ -58,8 +58,6 @@ const REMEMBER_KEY = "kranox.gate.wallet";
 /** A wallet that speaks the old way only, through window.ethereum, gets this name. */
 const FALLBACK_RDNS = "window.ethereum";
 
-/** The name of the made-up wallet of development, which no real swap may use. */
-export const SAMPLE_WALLET_RDNS = "sample";
 const FALLBACK_WAIT_MS = 400;
 
 /** The code with which a wallet says that it does not know the chain (EIP-3085). */
@@ -191,27 +189,6 @@ export async function switchToRobinhoodChain(): Promise<void> {
   } catch (error) {
     set({ busy: false, error: messageOf(error, "The wallet did not switch the network.") });
   }
-}
-
-/** A connection to a made-up wallet, for a look at the pages during development only. */
-export function connectSampleWallet(): void {
-  if (!import.meta.env.DEV) return;
-  const bytes = crypto.getRandomValues(new Uint8Array(20));
-  const address = `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
-  const provider: EIP1193Provider = {
-    request: async ({ method }) => {
-      if (method === "eth_chainId") return ROBINHOOD_CHAIN.hex;
-      if (method === "eth_accounts" || method === "eth_requestAccounts") return [address];
-      // The made-up wallet holds nothing, so a balance reads as zero.
-      if (method === "eth_getBalance" || method === "eth_call") return "0x0";
-      return null;
-    },
-  };
-  const choice: WalletChoice = {
-    info: { uuid: SAMPLE_WALLET_RDNS, name: "Sample wallet", icon: "", rdns: SAMPLE_WALLET_RDNS },
-    provider,
-  };
-  set({ connection: { choice, address, chainId: ROBINHOOD_CHAIN.id }, error: null });
 }
 
 function attach(choice: WalletChoice): void {

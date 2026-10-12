@@ -8,13 +8,7 @@ import { useSwaps } from "../../gate/store.ts";
 import { client } from "../../gate/use-client.ts";
 import { navigate, ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";
-import {
-  connectSampleWallet,
-  connectWallet,
-  forgetWallet,
-  switchToRobinhoodChain,
-  useWallet,
-} from "../../wallet/provider.ts";
+import { connectWallet, forgetWallet, switchToRobinhoodChain, useWallet } from "../../wallet/provider.ts";
 import { AddressBox, Glass, Notice, PageFrame, PillButton, Surface } from "../widgets/bits.tsx";
 import { Icon } from "../widgets/Icon.tsx";
 
@@ -88,13 +82,6 @@ export function ConnectPage() {
           )}
           {busy && <p className="t-small soft">{COPY.wallet.connecting}</p>}
           {error !== null && <Notice tone="warn">{error}</Notice>}
-          {import.meta.env.DEV && client.sample && (
-            <div>
-              <PillButton tone="quiet" small onClick={connectSampleWallet}>
-                {COPY.wallet.sample}
-              </PillButton>
-            </div>
-          )}
         </Surface>
       </PageFrame>
     );

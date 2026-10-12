@@ -1,10 +1,12 @@
 import { useSyncExternalStore } from "react";
 
 import {
+  PROVIDER_IDS,
   SWAP_STATUSES,
   type ChainAsset,
   type CreatedPay,
   type PayRate,
+  type ProviderId,
   type SwapState,
   type SwapStatus,
 } from "./types.ts";
@@ -12,6 +14,7 @@ import {
 /** A swap of the user, as this browser keeps it: what was asked, where it goes, and the last state read. */
 export interface SwapRecord {
   id: string;
+  provider: ProviderId;
   readToken: string;
   asset: ChainAsset;
   rate: PayRate;
@@ -65,6 +68,7 @@ export function findSwap(id: string): SwapRecord | null {
 export function recordOf(created: CreatedPay, rate: PayRate): SwapRecord {
   return {
     id: created.id,
+    provider: created.provider,
     readToken: created.readToken,
     asset: created.asset,
     rate,
@@ -129,10 +133,17 @@ function load(): readonly SwapRecord[] {
     if (raw === null) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isRecord);
+    return parsed.map(withProvider).filter(isRecord);
   } catch {
     return [];
   }
+}
+
+/** A record of the build before 12 Oct 2026 named no provider: ChangeNOW was the only one (D-04 of the scan). */
+function withProvider(value: unknown): unknown {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  return record.provider === undefined ? { ...record, provider: "changenow" } : record;
 }
 
 const isText = (value: unknown): boolean => typeof value === "string";
@@ -146,6 +157,7 @@ function isRecord(value: unknown): value is SwapRecord {
   const record = value as Record<string, unknown>;
   return (
     isText(record.id) &&
+    PROVIDER_IDS.some((provider) => provider === record.provider) &&
     isText(record.readToken) &&
     (record.asset === "ETH" || record.asset === "USDG") &&
     (record.rate === "fixed" || record.rate === "floating") &&

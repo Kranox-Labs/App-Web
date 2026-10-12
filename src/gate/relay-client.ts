@@ -17,6 +17,7 @@ import {
 } from "./readers.ts";
 import { importSigningKey, randomToken, verifiesAnswer, type SignedAnswer } from "./signature.ts";
 import {
+  PROVIDER_IDS,
   SWAP_STATUSES,
   type AddressScan,
   type ChainAsset,
@@ -26,6 +27,7 @@ import {
   type PayRange,
   type PayRate,
   type PayRequest,
+  type ProviderId,
   type SwapState,
 } from "./types.ts";
 
@@ -56,7 +58,6 @@ interface Call {
 }
 
 export class RelayClient implements GateClient {
-  readonly sample = false;
   readonly #base: URL;
   readonly #keys: Promise<readonly CryptoKey[]>;
 
@@ -66,9 +67,12 @@ export class RelayClient implements GateClient {
     this.#keys = Promise.all(signingKeys.map(importSigningKey));
   }
 
-  async payRange(asset: ChainAsset, rate: PayRate): Promise<PayRange> {
-    const fields = await this.#call("GET", "/v1/pay/range", { query: { asset: RELAY_ASSETS[asset], rate } });
+  async payRange(provider: ProviderId, asset: ChainAsset, rate: PayRate): Promise<PayRange> {
+    const fields = await this.#call("GET", "/v1/pay/range", {
+      query: { provider, asset: RELAY_ASSETS[asset], rate },
+    });
     return {
+      provider: readProvider(fields, provider),
       asset: readAsset(fields, asset),
       rate: readRate(fields, rate),
       minXmr: readNumber(fields, "minXmr"),
@@ -76,15 +80,16 @@ export class RelayClient implements GateClient {
     };
   }
 
-  async payQuote(asset: ChainAsset, rate: PayRate, xmrAmount: string): Promise<PayQuote> {
+  async payQuote(provider: ProviderId, asset: ChainAsset, rate: PayRate, xmrAmount: string): Promise<PayQuote> {
     const fields = await this.#call("GET", "/v1/pay/quote", {
-      query: { asset: RELAY_ASSETS[asset], rate, xmrAmount },
+      query: { provider, asset: RELAY_ASSETS[asset], rate, xmrAmount },
     });
     if (readString(fields, "xmrAmount") !== xmrAmount) {
       throw new RelayError("failed", "The relay answered a quote for another amount.");
     }
     const limit = readNullableString(fields, "limit");
     return {
+      provider: readProvider(fields, provider),
       asset: readAsset(fields, asset),
       rate: readRate(fields, rate),
       xmrAmount,
@@ -104,6 +109,7 @@ export class RelayClient implements GateClient {
   async createPay(request: PayRequest): Promise<CreatedPay> {
     const fields = await this.#call("POST", "/v1/pay/swaps", {
       body: {
+        provider: request.provider,
         asset: RELAY_ASSETS[request.asset],
         rate: request.rate,
         xmrAmount: request.xmrAmount,
@@ -135,6 +141,7 @@ export class RelayClient implements GateClient {
     }
     return {
       id: readString(fields, "id"),
+      provider: readProvider(fields, request.provider),
       asset: readAsset(fields, request.asset),
       amount: readNumber(fields, "amount"),
       xmrAmount,
@@ -145,11 +152,13 @@ export class RelayClient implements GateClient {
     };
   }
 
-  async readSwap(id: string, readToken: string): Promise<SwapState> {
+  async readSwap(provider: ProviderId, id: string, readToken: string): Promise<SwapState> {
     const fields = await this.#call("GET", `/v1/swaps/${encodeURIComponent(id)}`, {
+      query: { provider },
       headers: { [SWAP_TOKEN_HEADER]: readToken },
     });
     if (readString(fields, "id") !== id) throw new RelayError("failed", "The relay answered for another swap.");
+    readProvider(fields, provider);
     return {
       id,
       status: readChoice(fields, "status", SWAP_STATUSES),
@@ -218,7 +227,8 @@ export class RelayClient implements GateClient {
     if (response.status >= 400) {
       const message = fields.error;
       const detail = typeof message === "string" ? message : `HTTP ${response.status}`;
-      const refused = response.status === 400 || response.status === 422;
+      // A 503 of the relay says in its own words why it cannot serve right now, such as a missing key of a provider.
+      const refused = response.status === 400 || response.status === 422 || response.status === 503;
       throw new RelayError(refused ? "refused" : "failed", detail);
     }
     return fields;
@@ -231,6 +241,14 @@ function readAsset(fields: Fields, asset: ChainAsset): ChainAsset {
     throw new RelayError("failed", "The relay answered for another coin.");
   }
   return asset;
+}
+
+/** The provider of an answer, which must be the provider of the request. */
+function readProvider(fields: Fields, provider: ProviderId): ProviderId {
+  if (readChoice(fields, "provider", PROVIDER_IDS) !== provider) {
+    throw new RelayError("failed", "The relay answered for another provider.");
+  }
+  return provider;
 }
 
 /** The rate of an answer, which must be the rate of the request. */

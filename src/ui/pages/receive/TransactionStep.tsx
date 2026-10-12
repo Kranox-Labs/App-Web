@@ -10,7 +10,7 @@ import { client } from "../../../gate/use-client.ts";
 import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
-import { SAMPLE_WALLET_RDNS, useWallet } from "../../../wallet/provider.ts";
+import { useWallet } from "../../../wallet/provider.ts";
 import { Fact, Glass, Notice, PageFrame, PillButton, Surface } from "../../widgets/bits.tsx";
 import { Field } from "../../widgets/Field.tsx";
 import { Stepper } from "./Stepper.tsx";
@@ -27,6 +27,8 @@ export function TransactionStep() {
   const now = useNow();
   const [opening, setOpening] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  // Each tap on "Try again" after a failed refresh of the quote asks once more.
+  const [tries, setTries] = useState(0);
   // The key of this creation, with the request it belongs to: a second try of the same request after a lost answer
   // carries the same key, so the relay gives the same swap instead of a second one; a changed request gets a new key.
   const creation = useRef<{ fingerprint: string; key: string } | null>(null);
@@ -43,9 +45,12 @@ export function TransactionStep() {
     refreshingFor.current = quote.rateId;
     let live = true;
     client
-      .payQuote(draft.asset, draft.rate, draft.xmrAmount)
+      .payQuote(quote.provider, quote.asset, quote.rate, quote.xmrAmount)
       .then((found) => {
-        if (live) update({ quote: found });
+        if (live) {
+          setFailure(null);
+          update({ quote: found });
+        }
       })
       .catch((error: unknown) => {
         if (live) setFailure(describeError(error));
@@ -56,7 +61,7 @@ export function TransactionStep() {
     return () => {
       live = false;
     };
-  }, [ranOut, quote, draft.asset, draft.rate, draft.xmrAmount, update]);
+  }, [ranOut, quote, tries, update]);
 
   if (
     !ok ||
@@ -73,7 +78,7 @@ export function TransactionStep() {
   const refundError = refund !== "" && !refundValid ? COPY.receive.refundInvalid : null;
   const timeLeft = validUntil === null ? null : formatTimeLeft(validUntil, now);
   const chain = COPY.chains[draft.chain];
-  const provider = COPY.providers[draft.provider];
+  const provider = COPY.providers[quote.provider];
 
   const paste = async () => {
     try {
@@ -84,17 +89,14 @@ export function TransactionStep() {
   };
 
   const open = async () => {
-    // The made-up wallet of development holds no key of anyone: a real swap to its address would send coins nowhere.
-    if (connection.choice.info.rdns === SAMPLE_WALLET_RDNS && !client.sample) {
-      setFailure(COPY.receive.sampleWalletRefused);
-      return;
-    }
     setOpening(true);
     setFailure(null);
+    // The request is the quote the user saw, and nothing of the draft beside the address (D-08 of the scan).
     const request = {
-      asset: draft.asset,
-      rate: draft.rate,
-      xmrAmount: draft.xmrAmount,
+      provider: quote.provider,
+      asset: quote.asset,
+      rate: quote.rate,
+      xmrAmount: quote.xmrAmount,
       address: connection.address,
       refundAddress: refund,
       rateId: quote.rateId,
@@ -105,7 +107,7 @@ export function TransactionStep() {
     }
     try {
       const created = await client.createPay({ ...request, creationKey: creation.current.key });
-      putSwap(recordOf(created, draft.rate));
+      putSwap(recordOf(created, quote.rate));
       reset();
       navigate(ROUTES.swap(created.id));
     } catch (error) {
@@ -115,11 +117,7 @@ export function TransactionStep() {
   };
 
   return (
-    <PageFrame
-      wide
-      title={COPY.receive.title}
-      lead={client.sample ? `${COPY.receive.transactionLead} ${COPY.receive.sampleLead}` : COPY.receive.transactionLead}
-    >
+    <PageFrame wide title={COPY.receive.title} lead={COPY.receive.transactionLead}>
       <Stepper current={4} />
       <Glass>
         <Field
@@ -167,8 +165,17 @@ export function TransactionStep() {
             </Fact>
           )}
         </dl>
-        {ranOut && <Notice tone="warn">{COPY.receive.quoteRanOut}</Notice>}
-        {failure !== null && <Notice tone="warn">{failure}</Notice>}
+        {ranOut && failure === null && <Notice tone="warn">{COPY.receive.quoteRanOut}</Notice>}
+        {failure !== null && (
+          <Notice tone="warn">
+            {failure}{" "}
+            {ranOut && (
+              <PillButton tone="quiet" small onClick={() => setTries((count) => count + 1)}>
+                {COPY.receive.tryAgain}
+              </PillButton>
+            )}
+          </Notice>
+        )}
         <PillButton
           expand
           disabled={!refundValid || ranOut}

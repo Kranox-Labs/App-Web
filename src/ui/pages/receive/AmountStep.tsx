@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { AMOUNT_PATTERN, XMR_DECIMALS } from "../../../chain.ts";
 import { COPY } from "../../../copy.ts";
 import { decimalsOf } from "../../../gate/amount.ts";
+import { OPEN_PROVIDERS } from "../../../gate/catalog.ts";
 import { useDraft } from "../../../gate/draft.tsx";
-import type { ChainAsset, PayRange } from "../../../gate/types.ts";
+import { widestRange, type XmrRange } from "../../../gate/ranges.ts";
+import type { ChainAsset } from "../../../gate/types.ts";
 import { client } from "../../../gate/use-client.ts";
 import { formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
@@ -19,19 +21,17 @@ const ASSETS: readonly ChainAsset[] = ["USDG", "ETH"];
 export function AmountStep() {
   const ok = useStepGuard(1);
   const { draft, update } = useDraft();
-  const [range, setRange] = useState<PayRange | null>(null);
+  const [range, setRange] = useState<XmrRange | null>(null);
   const { asset, rate, xmrAmount } = draft;
 
+  // The widest range over the providers: an amount inside it has at least one, which the next step shows.
   useEffect(() => {
     let live = true;
-    client
-      .payRange(asset, rate)
-      .then((found) => {
-        if (live) setRange(found);
-      })
-      .catch(() => {
-        // The provider tells the range when the amount falls outside it.
-      });
+    Promise.allSettled(OPEN_PROVIDERS.map((provider) => client.payRange(provider, asset, rate))).then((results) => {
+      const found = results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+      // A provider that gave no range tells it when the amount falls outside it, on the next step.
+      if (live) setRange(widestRange(found));
+    });
     return () => {
       live = false;
     };
