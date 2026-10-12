@@ -12,7 +12,7 @@ import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
 import { useWallet } from "../../../wallet/provider.ts";
-import { ChoiceCard, Glass, PageFrame, PillButton } from "../../widgets/bits.tsx";
+import { ChoiceCard, Glass, PageFrame, PillButton, Spinner, Waiting } from "../../widgets/bits.tsx";
 import { Icon } from "../../widgets/Icon.tsx";
 import { Link } from "../../widgets/Link.tsx";
 import { PROVIDER_LOGOS } from "../../provider-logos.ts";
@@ -224,11 +224,13 @@ export function ProviderStep() {
                   <span className="t-swap-figure" aria-live="polite">
                     {amount !== null ? (
                       COPY.receive.youGetLine(formatAsset(amount, asset), asset)
+                    ) : quoting ? (
+                      <Spinner size="large" />
                     ) : (
                       <span className="faint">{COPY.receive.amountHint}</span>
                     )}
                   </span>
-                  {quoting && <span className="t-small soft">{COPY.receive.quoting}</span>}
+                  {quoting && <Waiting>{COPY.receive.quoting}</Waiting>}
                   {!quoting && problem !== null && <span className="t-small danger-text">{problem}</span>}
                   {amount !== null && own?.quote && (
                     <>

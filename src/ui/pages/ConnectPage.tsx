@@ -15,7 +15,7 @@ import {
   useWallet,
   type WalletChoice,
 } from "../../wallet/provider.ts";
-import { AddressBox, Glass, Notice, PageFrame, PillButton, Surface } from "../widgets/bits.tsx";
+import { AddressBox, Glass, Notice, PageFrame, PillButton, Surface, Waiting } from "../widgets/bits.tsx";
 import { Icon } from "../widgets/Icon.tsx";
 
 /**
@@ -56,7 +56,11 @@ function WalletList({ onPicked }: { onPicked?: () => void }) {
           <p className="t-small soft">{COPY.wallet.noneHint(window.location.host)}</p>
         </div>
       )}
-      {busy && <p className="t-small soft">{COPY.wallet.connecting}</p>}
+      {busy && (
+        <p>
+          <Waiting>{COPY.wallet.connecting}</Waiting>
+        </p>
+      )}
     </>
   );
 }
@@ -148,7 +152,9 @@ export function ConnectPage() {
         ) : scanFailed ? (
           <Notice>{COPY.connect.unchecked}</Notice>
         ) : (
-          <p className="t-small soft">{COPY.connect.checking}</p>
+          <p>
+            <Waiting>{COPY.connect.checking}</Waiting>
+          </p>
         )}
         <PillButton expand disabled={!onChain} onClick={goOn}>
           {returnTo === null ? COPY.connect.backHome : COPY.connect.continue}

@@ -4,6 +4,7 @@ import { COPY } from "../../copy.ts";
 import { shortAddress } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { useWallet } from "../../wallet/provider.ts";
+import { Spinner } from "../widgets/bits.tsx";
 import { Icon } from "../widgets/Icon.tsx";
 import { Link } from "../widgets/Link.tsx";
 
@@ -27,7 +28,10 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
       </Link>
       <div className="topbar__end">
         {busy ? (
-          <span className="pill pill--solid pill--small">{COPY.wallet.connecting}</span>
+          <span className="pill pill--solid pill--small">
+            <Spinner size="small" />
+            {COPY.wallet.connecting}
+          </span>
         ) : connection === null ? (
           <Link href={ROUTES.connect} className="pill pill--accent pill--small">
             {COPY.wallet.connect}

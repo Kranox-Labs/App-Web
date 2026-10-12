@@ -99,6 +99,7 @@ export const COPY = {
     arrivesAs: "Arrives as",
     arrivesText: "The coin that arrives in your wallet. Each provider shows how much on the next step.",
     quoting: "Getting the quote…",
+    rangeLoading: "Reading the range…",
     youGetLine: (amount: string, asset: ChainAsset) => `${amount} ${asset}`,
     rateLine: (rate: string, asset: ChainAsset) => `1 XMR ≈ ${rate} ${asset}`,
     fixedLine: (time: string) => `Fixed rate, good for ${time}`,
@@ -182,7 +183,8 @@ export const COPY = {
 
   swap: {
     back: "Activity",
-    sendExactly: (amount: string) => `Send exactly ${amount} XMR`,
+    sendTitle: "Send from your Monero wallet",
+    amountToSend: "Amount to send, exactly",
     into: (xmr: string, amount: string, asset: ChainAsset) => `${xmr} XMR into ${amount} ${asset}`,
     lead: "From your own Monero wallet, to this address, in one payment. The rate holds until the time runs out.",
     depositAddress: "Deposit address",
@@ -219,6 +221,7 @@ export const COPY = {
     payoutHash: "The transaction on Robinhood Chain",
     refundHash: "The refund on Monero",
     unknown: "This browser holds no swap with this ID.",
+    checking: "Checking the swap…",
     readFailed: "The last check did not come through. The app tries again in a moment.",
   },
 

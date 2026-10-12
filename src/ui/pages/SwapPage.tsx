@@ -8,7 +8,18 @@ import { client } from "../../gate/use-client.ts";
 import { formatAsset, formatMoment, formatTimeLeft, formatXmr } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";
-import { AddressBox, Fact, Glass, Notice, PageFrame, QrCode, Steps, Surface, type StepEnd } from "../widgets/bits.tsx";
+import {
+  AddressBox,
+  Fact,
+  Glass,
+  Notice,
+  PageFrame,
+  QrCode,
+  Steps,
+  Surface,
+  Waiting,
+  type StepEnd,
+} from "../widgets/bits.tsx";
 
 const STEPS = [
   { title: COPY.swap.steps.waiting },
@@ -52,12 +63,14 @@ export function SwapPage({ id }: { id: string }) {
   const provider = record?.provider ?? null;
   const open = record !== null && isOpen(record.status);
   const [readFailed, setReadFailed] = useState(false);
+  const [reading, setReading] = useState(false);
 
   // While the swap moves, the page reads its state now and then. The record in the store is always the newest.
   useEffect(() => {
     if (readToken === null || provider === null || !open) return;
     let live = true;
     const read = async () => {
+      setReading(true);
       try {
         const state = await client.readSwap(provider, id, readToken);
         const current = findSwap(id);
@@ -66,6 +79,8 @@ export function SwapPage({ id }: { id: string }) {
       } catch {
         // The next read may come through; the page says so meanwhile.
         if (live) setReadFailed(true);
+      } finally {
+        if (live) setReading(false);
       }
     };
     void read();
@@ -101,7 +116,7 @@ export function SwapPage({ id }: { id: string }) {
     <PageFrame
       wide
       back={back}
-      title={waiting ? COPY.swap.sendExactly(xmr) : COPY.swap.into(xmr, amount, record.asset)}
+      title={waiting ? COPY.swap.sendTitle : COPY.swap.into(xmr, amount, record.asset)}
       lead={waiting ? COPY.swap.lead : undefined}
     >
       {waiting && ranOut && <Notice tone="warn">{COPY.swap.expired}</Notice>}
@@ -109,6 +124,7 @@ export function SwapPage({ id }: { id: string }) {
         <Glass>
           <QrCode text={uri} label={`${COPY.swap.depositAddress}: ${record.depositAddress}`} />
           <AddressBox label={COPY.swap.depositAddress} text={record.depositAddress} />
+          <AddressBox label={COPY.swap.amountToSend} text={`${xmr} XMR`} copy={xmr} figure />
           <a className="pill pill--solid pill--expand" href={uri}>
             {COPY.swap.openWallet}
           </a>
@@ -117,6 +133,11 @@ export function SwapPage({ id }: { id: string }) {
       )}
       <Surface>
         <Steps steps={STEPS} current={step} end={end} />
+        {reading && open && (
+          <p>
+            <Waiting>{COPY.swap.checking}</Waiting>
+          </p>
+        )}
         {readFailed && open && <p className="t-small danger-text">{COPY.swap.readFailed}</p>}
         {record.status === "finished" && <Notice tone="good">{COPY.swap.arrived(amount, record.asset)}</Notice>}
         {record.status === "failed" && <Notice tone="warn">{COPY.swap.failed}</Notice>}

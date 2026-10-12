@@ -8,7 +8,7 @@ import { client } from "../../../gate/use-client.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
 import { useWallet } from "../../../wallet/provider.ts";
-import { AddressBox, Notice, PageFrame, PillButton, Ring, RuleRow, Surface } from "../../widgets/bits.tsx";
+import { AddressBox, Notice, PageFrame, PillButton, Ring, RuleRow, Surface, Waiting } from "../../widgets/bits.tsx";
 import { Stepper } from "./Stepper.tsx";
 import { onRobinhoodChain, useStepGuard } from "./steps.ts";
 
@@ -107,7 +107,11 @@ export function PrivacyStep() {
         ) : scan === null && scanFailed ? (
           <Notice>{COPY.connect.unchecked}</Notice>
         ) : (
-          scan === null && <p className="t-small soft">{COPY.connect.checking}</p>
+          scan === null && (
+            <p>
+              <Waiting>{COPY.connect.checking}</Waiting>
+            </p>
+          )
         )}
         <div>
           <PillButton tone="quiet" small icon="wallet" onClick={toConnect}>

@@ -10,7 +10,7 @@ import type { ChainAsset } from "../../../gate/types.ts";
 import { client } from "../../../gate/use-client.ts";
 import { formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
-import { CoinPill, Glass, PageFrame, PillButton, SwapBox } from "../../widgets/bits.tsx";
+import { CoinPill, Glass, PageFrame, PillButton, SwapBox, Waiting } from "../../widgets/bits.tsx";
 import { Icon } from "../../widgets/Icon.tsx";
 import { COIN_LOGOS } from "../../coin-logos.ts";
 import { Stepper } from "./Stepper.tsx";
@@ -71,8 +71,12 @@ export function AmountStep() {
           notes={
             error !== null ? (
               <p className="t-small danger-text">{error}</p>
+            ) : rangeHint !== null ? (
+              <p className="t-small soft">{rangeHint}</p>
             ) : (
-              rangeHint !== null && <p className="t-small soft">{rangeHint}</p>
+              <p>
+                <Waiting>{COPY.receive.rangeLoading}</Waiting>
+              </p>
             )
           }
         >

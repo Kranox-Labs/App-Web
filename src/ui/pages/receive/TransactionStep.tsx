@@ -11,7 +11,7 @@ import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
 import { useWallet } from "../../../wallet/provider.ts";
-import { Fact, Glass, Notice, PageFrame, PillButton, Surface } from "../../widgets/bits.tsx";
+import { Fact, Glass, Notice, PageFrame, PillButton, Surface, Waiting } from "../../widgets/bits.tsx";
 import { Field } from "../../widgets/Field.tsx";
 import { Stepper } from "./Stepper.tsx";
 import { onRobinhoodChain, useStepGuard } from "./steps.ts";
@@ -183,7 +183,11 @@ export function TransactionStep() {
           )}
         </dl>
         {!refundValid && !ranOut && <p className="t-small soft text-center">{COPY.receive.refundNeeded}</p>}
-        {ranOut && failure === null && <Notice tone="warn">{COPY.receive.quoteRanOut}</Notice>}
+        {ranOut && failure === null && (
+          <Notice tone="warn">
+            <Waiting className="">{COPY.receive.quoteRanOut}</Waiting>
+          </Notice>
+        )}
         {failure !== null && (
           <Notice tone="warn">
             {failure}{" "}

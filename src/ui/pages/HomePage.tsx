@@ -9,7 +9,7 @@ import { formatAgo, formatBalance, shortAddress } from "../../format.ts";
 import { ROUTES } from "../../router.ts";
 import { useNow } from "../../use-now.ts";
 import { useWallet } from "../../wallet/provider.ts";
-import { copyText, PageFrame, RoundButton, Surface } from "../widgets/bits.tsx";
+import { copyText, PageFrame, RoundButton, Surface, Waiting } from "../widgets/bits.tsx";
 import { Icon } from "../widgets/Icon.tsx";
 import { Link } from "../widgets/Link.tsx";
 import { SwapRow } from "../widgets/SwapRow.tsx";
@@ -78,7 +78,7 @@ export function HomePage() {
                 </p>
                 <p className="t-row-figure hero__second">
                   {balances === null ? (
-                    <span className="t-small hero__soft">{COPY.home.updating}</span>
+                    <Waiting className="t-small hero__soft">{COPY.home.updating}</Waiting>
                   ) : (
                     <>
                       {formatBalance(balances.eth, "ETH")}

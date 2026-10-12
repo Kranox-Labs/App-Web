@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { create as createQr } from "qrcode";
 
 import { COPY } from "../../copy.ts";
@@ -72,6 +80,30 @@ type PillProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon?: IconName | undefined;
 };
 
+/** The spinner of the app: the activity indicator of iOS, in the color of the text around it. */
+export function Spinner({ size = "default" }: { size?: "small" | "default" | "large" }) {
+  const classes = size === "default" ? "spinner" : `spinner spinner--${size}`;
+  return (
+    <span className={classes} aria-hidden="true">
+      {SPINNER_BARS.map((bar) => (
+        <i key={bar} style={{ "--bar": bar } as CSSProperties} />
+      ))}
+    </span>
+  );
+}
+
+const SPINNER_BARS = Array.from({ length: 12 }, (_, bar) => bar);
+
+/** A line that says what the app waits for, with the spinner before it. */
+export function Waiting({ children, className = "t-small soft" }: { children: ReactNode; className?: string }) {
+  return (
+    <span className={`waiting ${className}`} role="status">
+      <Spinner size="small" />
+      <span>{children}</span>
+    </span>
+  );
+}
+
 /** A rounded button with a label, as PillButton of the app. While [busy], it shows a spinner and takes no click. */
 export function PillButton({
   tone = "accent",
@@ -90,11 +122,7 @@ export function PillButton({
     .join(" ");
   return (
     <button type="button" className={classes} disabled={disabled || busy} {...rest}>
-      {busy ? (
-        <span className="spinner spinner--small" />
-      ) : (
-        icon !== undefined && <Icon name={icon} size={small ? 14 : 18} />
-      )}
+      {busy ? <Spinner size="small" /> : icon !== undefined && <Icon name={icon} size={small ? 14 : 18} />}
       {busy ? (busyLabel ?? children) : children}
     </button>
   );
@@ -157,13 +185,27 @@ export async function copyText(text: string): Promise<void> {
 }
 
 /** An address or a hash in full, in the font for addresses, with a round copy button, as the address box of the app. */
-export function AddressBox({ text, label }: { text: string; label?: string | undefined }) {
+/**
+ * A box with a text to copy: an address or a hash in the monospace face, or, with [figure], an amount as a large
+ * figure. The button copies [copy] when given, such as the number of an amount without its unit, and [text] otherwise.
+ */
+export function AddressBox({
+  text,
+  label,
+  copy,
+  figure = false,
+}: {
+  text: string;
+  label?: string | undefined;
+  copy?: string | undefined;
+  figure?: boolean;
+}) {
   return (
     <div className="addressbox-wrap">
       {label !== undefined && <p className="t-small-strong soft">{label}</p>}
       <div className="addressbox">
-        <p className="addressbox__text t-mono">{text}</p>
-        <RoundButton icon="copy" label={COPY.swap.copy} small onClick={() => void copyText(text)} />
+        <p className={figure ? "addressbox__text t-swap-figure" : "addressbox__text t-mono"}>{text}</p>
+        <RoundButton icon="copy" label={COPY.swap.copy} small onClick={() => void copyText(copy ?? text)} />
       </div>
     </div>
   );
@@ -251,7 +293,7 @@ export function Steps({ steps, current, end = null }: { steps: readonly Step[]; 
               {done ? (
                 <Icon name="check" size={14} />
               ) : now && end === null ? (
-                <span className="spinner" />
+                <Spinner />
               ) : now && end === "held" ? (
                 <Icon name="pause" size={14} />
               ) : now && end === "refunded" ? (
