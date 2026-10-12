@@ -7,7 +7,7 @@ import { ROUTES } from "../../router.ts";
 import { useWallet, type Connection } from "../../wallet/provider.ts";
 import { Icon } from "../widgets/Icon.tsx";
 import { Link } from "../widgets/Link.tsx";
-import { isActive, NAV } from "./nav.tsx";
+import { isActive, LEGAL_LINKS, NAV } from "./nav.tsx";
 
 /**
  * The sidebar, as the app draws it after the sidebar of System Settings in macOS: a panel of glass with the brand
@@ -47,6 +47,13 @@ export function Sidebar({ path, open, onClose }: { path: string; open: boolean; 
         </nav>
         <div className="sidebar__spacer" />
         <StatusCard />
+        <nav className="legal" aria-label={COPY.legal.label}>
+          {LEGAL_LINKS.map((link) => (
+            <a key={link.href} className="t-small faint" href={link.href} target="_blank" rel="noreferrer">
+              {link.label}
+            </a>
+          ))}
+        </nav>
       </aside>
     </>
   );

@@ -34,3 +34,8 @@ of the build for `app.kranox.cash` to `dist/`, with the values of `.env.producti
 - `src/styles/`: the design tokens and the base styles, after the dark look of the Kranox app.
 - `test/`: the tests of the logic that touches money and trust: the signatures, the settings, the balances, the
   amounts, and the privacy check.
+
+## License
+
+The door is free software under the GNU General Public License, version 3. `LICENSE` in this repository holds the
+text. A copy that you share must come with its source under the same license.

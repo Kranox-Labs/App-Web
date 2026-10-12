@@ -18,6 +18,13 @@ export const COPY = {
     closeMenu: "Close the menu",
   },
 
+  legal: {
+    label: "Legal pages",
+    privacy: "Privacy",
+    disclosures: "Disclosures",
+    terms: "Terms",
+  },
+
   sidebar: {
     noWallet: "No wallet",
     connectToReceive: "Connect one to receive",

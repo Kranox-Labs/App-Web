@@ -368,6 +368,23 @@ strong {
   flex: 1;
 }
 
+/* The legal pages of the site, under the state of the relay. */
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 10px 14px 4px;
+}
+
+.legal a {
+  text-decoration: none;
+}
+
+.legal a:hover,
+.legal a:focus-visible {
+  text-decoration: underline;
+}
+
 .scrim {
   display: none;
 }

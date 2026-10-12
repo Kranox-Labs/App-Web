@@ -6,6 +6,9 @@ export const ENV_SAMPLE_DATA = "VITE_SAMPLE_DATA";
 export const ENV_RELAY_URL = "VITE_RELAY_URL";
 export const ENV_RELAY_SIGNING_KEYS = "VITE_RELAY_SIGNING_KEYS";
 
+/** The site of Kranox, where the legal pages live. The sidebar links to them. */
+export const SITE_ORIGIN = "https://kranox.cash";
+
 /** A public key of the relay: the uncompressed point of P-256, 65 bytes that start with 4, in base64. */
 const SIGNING_KEY_BYTES = 65;
 const UNCOMPRESSED_POINT = 4;

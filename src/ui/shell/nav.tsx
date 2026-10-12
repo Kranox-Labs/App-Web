@@ -1,3 +1,4 @@
+import { SITE_ORIGIN } from "../../config.ts";
 import { COPY } from "../../copy.ts";
 import { ROUTES, swapIdOf } from "../../router.ts";
 import type { IconName } from "../widgets/Icon.tsx";
@@ -8,6 +9,13 @@ export const NAV: readonly { href: string; label: string; icon: IconName }[] = [
   { href: ROUTES.receive, label: COPY.nav.receive, icon: "receive" },
   { href: ROUTES.activity, label: COPY.nav.activity, icon: "history" },
   { href: ROUTES.privacy, label: COPY.nav.privacy, icon: "privacy" },
+];
+
+/** The legal pages of the site, at the foot of the sidebar. They open on the site, in a new tab. */
+export const LEGAL_LINKS: readonly { href: string; label: string }[] = [
+  { href: `${SITE_ORIGIN}/privacy`, label: COPY.legal.privacy },
+  { href: `${SITE_ORIGIN}/disclosures`, label: COPY.legal.disclosures },
+  { href: `${SITE_ORIGIN}/terms`, label: COPY.legal.terms },
 ];
 
 /** Whether [path] belongs to the page of [href]: the steps of receive belong to receive, a swap to the activity. */
