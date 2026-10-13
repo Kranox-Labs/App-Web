@@ -2,9 +2,9 @@
 
 The web app of Kranox: the gate from any private chain into Robinhood Chain, in the shape of a wallet. The user connects the wallet
 that receives, and receive walks through the chain the coins come from, the amount, the provider, the privacy review,
-and the transaction: the user sends XMR from their own Monero wallet, and the coins arrive in the wallet they
-connected. The app holds no keys, opens no account, and keeps the swaps of the user in the browser only. It runs in
-the browser of a phone and of a desktop.
+and the transaction: the user sends the coins from their own wallet of that chain, XMR from a Monero wallet or STRK
+from a Starknet wallet, and the coins arrive in the wallet they connected. The app holds no keys, opens no account,
+and keeps the swaps of the user in the browser only. It runs in the browser of a phone and of a desktop.
 
 The app talks to the relay of Kranox ([Kranox-Labs/Relay](https://github.com/Kranox-Labs/Relay)), which holds the key
 of the exchanger. Each request carries a nonce, and the app trusts an answer only with the signature of the relay over
@@ -26,8 +26,9 @@ of the build for `app.kranox.cash` to `dist/`, with the values of `.env.producti
 ## Layout
 
 - `src/config.ts`: the settings of the build, checked before the app starts.
-- `src/gate/`: the shapes of the relay, the client of the relay, the check of the signatures,
-  the swaps kept in the browser, the privacy check, and the swap under way.
+- `src/gate/`: the shapes of the relay, the client of the relay, the check of the signatures, the chains the coins
+  come from and their addresses, the catalog of providers, the swaps kept in the browser, the privacy check, and the
+  swap under way.
 - `src/wallet/`: the wallet of the user, found through EIP-6963 and connected through EIP-1193, and its balances.
 - `src/ui/`: the shell, the pages (the home, the steps of receive, connect, a swap, the activity, privacy), and the
   widgets.

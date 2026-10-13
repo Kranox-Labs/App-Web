@@ -40,9 +40,9 @@ export function PrivacyPage() {
   }, [address, scanned, update]);
 
   const scan = address !== null && scanned?.toLowerCase() === address.toLowerCase() ? draft.scan : null;
-  const xmrAmount =
-    AMOUNT_PATTERN.test(draft.xmrAmount) && Number(draft.xmrAmount) > 0 ? Number(draft.xmrAmount) : null;
-  const report = checkPrivacy({ recipient: address, xmrAmount, swaps, scan, now });
+  const fromAmount =
+    AMOUNT_PATTERN.test(draft.fromAmount) && Number(draft.fromAmount) > 0 ? Number(draft.fromAmount) : null;
+  const report = checkPrivacy({ recipient: address, chain: draft.chain, fromAmount, swaps, scan, now });
   const warnings = warningCount(report);
 
   const rules = [
@@ -60,8 +60,8 @@ export function PrivacyPage() {
     {
       label: COPY.privacy.amount,
       finding: report.amount,
-      known: xmrAmount !== null,
-      clear: xmrAmount === null ? COPY.privacy.amountNone : COPY.privacy.amountClear,
+      known: fromAmount !== null,
+      clear: fromAmount === null ? COPY.privacy.amountNone : COPY.privacy.amountClear,
     },
     { label: COPY.privacy.timing, finding: report.timing, known: true, clear: COPY.privacy.timingClear },
   ];

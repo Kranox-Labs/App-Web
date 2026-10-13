@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
 
+import { SWAP_ID_PATTERN } from "./chain.ts";
+
 // The path of the page is the route. The app changes it without a load of the page, and the back button of the
 // browser works as on any site. The host answers every path with index.html.
 const listeners = new Set<() => void>();
@@ -48,9 +50,10 @@ export const ROUTES = {
   swap: (id: string) => `/swaps/${id}`,
 } as const;
 
-const SWAP_PATH = /^\/swaps\/([0-9a-zA-Z]{6,64})$/;
+const SWAP_PATH = /^\/swaps\/([^/]+)$/;
 
-/** The id of the swap that [path] opens, or null for another page. */
+/** The id of the swap that [path] opens, when it has the form of an id of the relay, or null for another page. */
 export function swapIdOf(path: string): string | null {
-  return SWAP_PATH.exec(path)?.[1] ?? null;
+  const id = SWAP_PATH.exec(path)?.[1] ?? null;
+  return id !== null && SWAP_ID_PATTERN.test(id) ? id : null;
 }

@@ -1,4 +1,4 @@
-import type { ChainAsset, FromChain, ProviderId, SwapStatus } from "./gate/types.ts";
+import type { ChainAsset, FromChain, PayRate, ProviderId, SwapStatus } from "./gate/types.ts";
 
 /** The words about one provider: its name and where its support answers. */
 export interface ProviderWords {
@@ -81,31 +81,35 @@ export const COPY = {
     stepOf: (step: number, total: number, name: string) => `Step ${step} of ${total} · ${name}`,
     chainLead: "Where do the coins come from?",
     amountLead: "How much, and which coin arrives in your wallet.",
-    providerLead: "Who turns your XMR into the coin on Robinhood Chain.",
+    providerLead: (coin: string) => `Who turns your ${coin} into the coin on Robinhood Chain.`,
     privacyLead: "What this swap gives away, checked in this browser before you open the gate.",
     transactionLead: "Where a refund goes if the swap fails, then the review.",
     continue: "Continue",
     soon: "Soon",
     youSend: "You send",
     youGet: "You get",
-    onMonero: "On Monero",
+    onChainOf: (name: string) => `On ${name}`,
     onChain: "On Robinhood Chain",
     amountHint: "0.00",
-    rangeHint: (min: string, max: string) => `From ${min} to ${max} XMR`,
-    belowMin: (min: string) => `The least that goes through is ${min} XMR.`,
-    aboveMax: (max: string) => `The most that goes through is ${max} XMR.`,
+    rangeHint: (min: string, max: string, coin: string) => `From ${min} to ${max} ${coin}`,
+    belowMin: (min: string, coin: string) => `The least that goes through is ${min} ${coin}.`,
+    aboveMax: (max: string, coin: string) => `The most that goes through is ${max} ${coin}.`,
     badAmount: "Digits and one point only.",
     tooManyDecimals: (max: number) => `At most ${max} decimals.`,
     arrivesAs: "Arrives as",
     arrivesText: "The coin that arrives in your wallet. Each provider shows how much on the next step.",
     quoting: "Getting the quote…",
     rangeLoading: "Reading the range…",
+    rangeUnknown: "No range came through right now. The next step says what each provider takes.",
     youGetLine: (amount: string, asset: ChainAsset) => `${amount} ${asset}`,
-    rateLine: (rate: string, asset: ChainAsset) => `1 XMR ≈ ${rate} ${asset}`,
+    rateLine: (coin: string, rate: string, asset: ChainAsset) => `1 ${coin} ≈ ${rate} ${asset}`,
     fixedLine: (time: string) => `Fixed rate, good for ${time}`,
     feeLine: (fee: string, asset: ChainAsset) => `The network fee of ${fee} ${asset} is already taken off.`,
-    speedLine: (minutes: string) => `About ${minutes} minutes after your XMR confirms.`,
-    rangeFrom: (min: string) => `From ${min} XMR`,
+    speedLine: (minutes: string, coin: string) =>
+      minutes === "1"
+        ? `About a minute after your ${coin} confirms.`
+        : `About ${minutes} minutes after your ${coin} confirms.`,
+    rangeFrom: (min: string, coin: string) => `From ${min} ${coin}`,
     sees: "What it sees",
     bestRate: "Best rate",
     otherProviderTakes: (name: string) => `${name} takes this amount. Tap it to go on.`,
@@ -117,18 +121,36 @@ export const COPY = {
     fixedText: "Exact amount",
     floatingRate: "Floating rate",
     floatingText: "Can move a little",
-    minLine: (min: string) => `Min ${min} XMR`,
+    minLine: (min: string, coin: string) => `Min ${min} ${coin}`,
+    rateOnly: (rate: PayRate) => (rate === "fixed" ? "Fixed rate only" : "Floating rate only"),
+    notAt: (name: string) => `Not at ${name}`,
     arrivesAt: "Arrives at",
     connectFirst: "Connect the wallet that receives to go on.",
     useAnother: "Use another wallet",
-    refundField: "Your Monero address for a refund (required)",
-    refundHint: "A Monero mainnet address: 95 characters that start with 4 or 8",
-    refundNeeded: "Fill in your Monero address for a refund to open the gate.",
-    refundInvalid: "That is not a Monero mainnet address.",
-    refundValid: "Monero address",
+    refundField: (name: string) => `Your ${name} address for a refund (required)`,
+    refundHint: {
+      XMR: "A Monero mainnet address: 95 characters that start with 4 or 8",
+      STRK: "The address of your Starknet account, as your Starknet wallet shows it: 0x and up to 64 hex digits",
+      ZEC: "",
+      ALEO: "",
+    } satisfies Record<FromChain, string>,
+    refundNeeded: (name: string) => `Fill in your ${name} address for a refund to open the gate.`,
+    refundInvalid: {
+      XMR: "That is not a Monero mainnet address.",
+      STRK: "That is not a Starknet address.",
+      ZEC: "",
+      ALEO: "",
+    } satisfies Record<FromChain, string>,
+    refundEvm: (name: string) =>
+      `That is an address of an EVM chain, such as your wallet on Robinhood Chain, not a ${name} account.`,
+    refundValid: (name: string) => `${name} address`,
     paste: "Paste",
-    refundTip:
-      "Why it is required: Monero shows the provider no sender, so if the swap fails, a refund can only go to an address you give here. Use a new subaddress of your Monero wallet, not one that took part in a swap before. A refund is rare: it comes only when the provider cannot complete the swap.",
+    refundTip: {
+      XMR: "Why it is required: Monero shows the provider no sender, so if the swap fails, a refund can only go to an address you give here. Use a new subaddress of your Monero wallet, not one that took part in a swap before. A refund is rare: it comes only when the provider cannot complete the swap.",
+      STRK: "Why it is required: if the swap fails, the provider sends the STRK back to an address you give here. Use the address of the Starknet wallet you send from, or another account of yours. A refund is rare: it comes only when the provider cannot complete the swap.",
+      ZEC: "",
+      ALEO: "",
+    } satisfies Record<FromChain, string>,
     review: "Before you open the gate",
     to: "To",
     provider: "Provider",
@@ -136,9 +158,11 @@ export const COPY = {
     fees: "Fees",
     feeNetworkLine: (fee: string, asset: ChainAsset) =>
       `Network fee on Robinhood Chain: ${fee} ${asset}, already taken off what you get.`,
-    feeDepositLine: (fee: string) => `Fee on the deposit: ${fee} XMR, already counted in what you get.`,
+    feeDepositLine: (fee: string, coin: string) =>
+      `Fee on the deposit: ${fee} ${coin}, already counted in what you get.`,
     feesIncluded: "Included in the rate. The provider names no fee apart from it.",
-    feeMoneroLine: "Your Monero wallet adds its own network fee when you send; it is not part of the swap.",
+    feeWalletLine: (name: string) =>
+      `Your ${name} wallet adds its own network fee when you send; it is not part of the swap.`,
     fixedFor: (time: string) => `Fixed, good for ${time}`,
     floating: "Floating",
     quoteRanOut: "The quote ran out. Getting a new one…",
@@ -149,13 +173,14 @@ export const COPY = {
   },
 
   chains: {
-    XMR: { name: "Monero", coin: "XMR", text: "Private by default. The way in that works today." },
+    XMR: { name: "Monero", coin: "XMR", text: "Private by default." },
     ZEC: { name: "Zcash", coin: "ZEC", text: "Shielded coins. On the road ahead." },
-    STRK: { name: "Starknet", coin: "STRK", text: "On the road ahead." },
+    STRK: { name: "Starknet", coin: "STRK", text: "From your Starknet wallet, in about a minute." },
     ALEO: { name: "Aleo", coin: "ALEO", text: "On the road ahead." },
   } satisfies Record<FromChain, { name: string; coin: string; text: string }>,
 
-  // The support addresses: ChangeNOW CHECKED 5 Oct 2026 for the app; SimpleSwap CHECKED 12 Oct 2026, its site.
+  // The support addresses: ChangeNOW CHECKED 5 Oct 2026 for the app; SimpleSwap CHECKED 12 Oct 2026, its site; NEAR
+  // Intents CHECKED 13 Oct 2026, the page "Going live" of its documentation names its Telegram community.
   providers: {
     changenow: {
       name: "ChangeNOW",
@@ -168,6 +193,12 @@ export const COPY = {
       text: "An exchange without an account.",
       sees: "The amount, the time, the deposit, and the address that receives. Never your keys, and never your IP address: Kranox asks it through its relay.",
       support: "support@simpleswap.io",
+    },
+    oneclick: {
+      name: "NEAR Intents",
+      text: "A swap settled by intents, in about a minute.",
+      sees: "The amount, the time, the deposit, and the address that receives, on the public ledger of NEAR Intents. Never your keys, and never your IP address: Kranox asks it through its relay.",
+      support: "https://t.me/near_intents",
     },
   } satisfies Record<ProviderId, { name: string; text: string; sees: string; support: string }>,
 
@@ -183,33 +214,35 @@ export const COPY = {
 
   swap: {
     back: "Activity",
-    sendTitle: "Send from your Monero wallet",
+    sendTitle: (name: string) => `Send from your ${name} wallet`,
     amountToSend: "Amount to send, exactly",
-    into: (xmr: string, amount: string, asset: ChainAsset) => `${xmr} XMR into ${amount} ${asset}`,
-    lead: "From your own Monero wallet, to this address, in one payment. The rate holds until the time runs out.",
+    into: (fromAmount: string, coin: string, amount: string, asset: ChainAsset) =>
+      `${fromAmount} ${coin} into ${amount} ${asset}`,
+    lead: (name: string) =>
+      `From your own ${name} wallet, to this address, in one payment. The rate holds until the time runs out.`,
     depositAddress: "Deposit address",
     copy: "Copy",
     copied: "Copied",
-    openWallet: "Open in your Monero wallet",
+    openWallet: (name: string) => `Open in your ${name} wallet`,
     timeLeft: (time: string) => `${time} left to send`,
     expired: "The time to send ran out. Do not send to this address now.",
     steps: {
       waiting: "Waiting for your deposit",
-      confirming: "Confirming on Monero",
+      confirming: (name: string) => `Confirming on ${name}`,
       exchanging: "Exchanging",
       sending: "Sending to your wallet",
       finished: "Done",
     },
     arrived: (amount: string, asset: ChainAsset) => `${amount} ${asset} arrived in your wallet.`,
-    failed: "The swap failed. The provider sends the XMR back to your refund address.",
-    refunded: (amount: string | null) =>
+    failed: (coin: string) => `The swap failed. The provider sends the ${coin} back to your refund address.`,
+    refunded: (amount: string | null, coin: string) =>
       amount === null
-        ? "The provider sent the XMR back to your refund address."
-        : `The provider sent ${amount} XMR back to your refund address.`,
+        ? `The provider sent the ${coin} back to your refund address.`
+        : `The provider sent ${amount} ${coin} back to your refund address.`,
     verifying: (provider: ProviderWords) =>
       `${provider.name} stopped this swap to check it. Write to ${provider.support} with the swap ID; Kranox cannot release it.`,
-    expiredStep: (provider: ProviderWords) =>
-      `${provider.name} stopped waiting before it took in the XMR. If you sent it after all, write to ${provider.support} with the swap ID.`,
+    expiredStep: (provider: ProviderWords, coin: string) =>
+      `${provider.name} stopped waiting before it took in the ${coin}. If you sent it after all, write to ${provider.support} with the swap ID.`,
     provider: "Provider",
     youGet: "You get",
     recipient: "Arrives at",
@@ -217,9 +250,9 @@ export const COPY = {
     id: "Swap ID",
     started: "Started",
     checked: "Last checked",
-    depositHash: "Your deposit on Monero",
+    depositHash: (name: string) => `Your deposit on ${name}`,
     payoutHash: "The transaction on Robinhood Chain",
-    refundHash: "The refund on Monero",
+    refundHash: (name: string) => `The refund on ${name}`,
     unknown: "This browser holds no swap with this ID.",
     checking: "Checking the swap…",
     readFailed: "The last check did not come through. The app tries again in a moment.",
@@ -279,14 +312,14 @@ export const COPY = {
   },
 } as const;
 
-/** The state of a swap in a list, in the words of its page. */
-export function stageText(status: SwapStatus): string {
+/** The state of a swap in a list, in the words of its page; [chainName] names the chain the coins come from. */
+export function stageText(status: SwapStatus, chainName: string): string {
   switch (status) {
     case "new":
     case "waiting":
       return COPY.swap.steps.waiting;
     case "confirming":
-      return COPY.swap.steps.confirming;
+      return COPY.swap.steps.confirming(chainName);
     case "exchanging":
       return COPY.swap.steps.exchanging;
     case "sending":

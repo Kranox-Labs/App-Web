@@ -31,11 +31,15 @@ export const RELAY_ANSWER_MAX_BYTES = 1024 * 1024;
 /** An address on Robinhood Chain: 0x and 40 hex digits. */
 export const EVM_ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 
-/** A Monero mainnet address: a standard or a subaddress of 95 characters, as the relay accepts for a refund. */
-export const MONERO_ADDRESS_PATTERN = /^[48][1-9A-HJ-NP-Za-km-z]{94}$/;
-
 /** A deposit address of the exchanger for XMR: a standard address or a subaddress of mainnet, or an integrated one. */
 export const MONERO_DEPOSIT_PATTERN = /^(?:[48][1-9A-HJ-NP-Za-km-z]{94}|4[1-9A-HJ-NP-Za-km-z]{105})$/;
+
+/**
+ * The id of a swap, as the relay issues one: the id of the exchanger, such as 3a2360771439a3 or pch7l7kd1v2mzh1, with
+ * "_" and "-" as some write them, or, at NEAR Intents, the deposit address of the swap, 0x and 64 hex digits. The same
+ * form as EXCHANGE_ID_PATTERN of the relay (D-18 of the scan of 13 Oct 2026).
+ */
+export const SWAP_ID_PATTERN = /^[0-9a-zA-Z_-]{6,128}$/;
 
 /** Two amounts match when they differ by less than this share of the larger one, as in the relay. */
 export const AMOUNT_MATCH_TOLERANCE = 1e-9;

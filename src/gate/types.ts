@@ -4,35 +4,39 @@
 /** A coin of Robinhood Chain that the gate brings in. */
 export type ChainAsset = "ETH" | "USDG";
 
-/** A chain that the coins come from. Only Monero is open; the others name the road ahead. */
+/** A chain that the coins come from. Monero and, from 13 Oct 2026, Starknet are open; the others name the road ahead. */
 export type FromChain = "XMR" | "ZEC" | "STRK" | "ALEO";
 
-/** An exchange that turns the coins of a chain into a coin of Robinhood Chain. */
-export type ProviderId = "changenow" | "simpleswap";
+export const FROM_CHAINS: readonly FromChain[] = ["XMR", "ZEC", "STRK", "ALEO"];
 
-export const PROVIDER_IDS: readonly ProviderId[] = ["changenow", "simpleswap"];
+/** An exchange that turns the coins of a chain into a coin of Robinhood Chain. */
+export type ProviderId = "changenow" | "simpleswap" | "oneclick";
+
+export const PROVIDER_IDS: readonly ProviderId[] = ["changenow", "simpleswap", "oneclick"];
 
 /** The rate of a swap: fixed holds the quote for a while, floating takes the rate at the time of the deposit. */
 export type PayRate = "fixed" | "floating";
 
-/** The least and the most XMR that a swap takes at a rate; a floating rate may have no most. */
+/** The least and the most of the coin of origin that a swap takes at a rate; a floating rate may have no most. */
 export interface PayRange {
   provider: ProviderId;
+  chain: FromChain;
   asset: ChainAsset;
   rate: PayRate;
-  minXmr: number;
-  maxXmr: number | null;
+  minFrom: number;
+  maxFrom: number | null;
 }
 
 /** Which side of the range an amount fell on. */
 export type PayLimit = "below" | "above";
 
-/** What an amount of XMR buys. Outside the range of the rate, [amount] is null and [limit] names the side. */
+/** What an amount of the coin of origin buys. Outside the range of the rate, [amount] is null and [limit] names the side. */
 export interface PayQuote {
   provider: ProviderId;
+  chain: FromChain;
   asset: ChainAsset;
   rate: PayRate;
-  xmrAmount: string;
+  fromAmount: string;
   amount: number | null;
   rateId: string | null;
   validUntil: string | null;
@@ -42,35 +46,39 @@ export interface PayQuote {
   /** How long the exchange takes, in the words of the exchanger, such as "10-60". */
   speedMinutes: string | null;
   limit: PayLimit | null;
-  minXmr: number | null;
-  maxXmr: number | null;
+  minFrom: number | null;
+  maxFrom: number | null;
 }
 
 /**
- * A swap to open: the XMR to send, the coin and the address that receive, where a refund goes, and the key of this
- * creation, so that a second try after a lost answer gets the same swap instead of a second one.
+ * A swap to open: the coins to send and their chain, the coin and the address that receive, where a refund goes, and
+ * the key of this creation, so that a second try after a lost answer gets the same swap instead of a second one.
  */
 export interface PayRequest {
   provider: ProviderId;
+  chain: FromChain;
   asset: ChainAsset;
   rate: PayRate;
-  xmrAmount: string;
+  fromAmount: string;
   address: string;
   refundAddress: string;
   rateId: string | null;
   creationKey: string;
 }
 
-/** A swap that the exchanger opened: where to send the XMR, and the token that reads its state. */
+/** A swap that the exchanger opened: where to send the coins, and the token that reads its state. */
 export interface CreatedPay {
   id: string;
   provider: ProviderId;
+  chain: FromChain;
   asset: ChainAsset;
   amount: number;
-  xmrAmount: number;
+  fromAmount: number;
   depositAddress: string;
   payoutAddress: string;
   refundAddress: string | null;
+  /** The time until which the exchanger takes the deposit, when it names one at the creation. */
+  validUntil: string | null;
   readToken: string;
 }
 

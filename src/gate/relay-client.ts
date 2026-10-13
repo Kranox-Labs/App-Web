@@ -1,7 +1,9 @@
 // The gate through the relay of Kranox, as the Mac app talks to it (apps/wallet/lib/bridge/client.dart): each request
 // carries a nonce, and an answer counts only with the signature of the relay over that request and that answer, an
-// error too. The relay holds the key of the exchanger and keeps no log of a request.
-import { AMOUNT_MATCH_TOLERANCE, MONERO_DEPOSIT_PATTERN, RELAY_ANSWER_MAX_BYTES, RELAY_TIMEOUT_MS } from "../chain.ts";
+// error too. The relay holds the key of the exchanger and keeps no log of a request. From 13 Oct 2026 a payment names
+// its chain of origin (from) and its amount as fromAmount, the names the relay holds for every coin.
+import { AMOUNT_MATCH_TOLERANCE, RELAY_ANSWER_MAX_BYTES, RELAY_TIMEOUT_MS, SWAP_ID_PATTERN } from "../chain.ts";
+import { CHAIN_FACTS } from "./chains.ts";
 import type { GateClient } from "./client.ts";
 import { COPY } from "../copy.ts";
 import { RelayError } from "./errors.ts";
@@ -23,6 +25,7 @@ import {
   type AddressScan,
   type ChainAsset,
   type CreatedPay,
+  type FromChain,
   type PayLimit,
   type PayQuote,
   type PayRange,
@@ -71,32 +74,40 @@ export class RelayClient implements GateClient {
     this.#keys = Promise.all(signingKeys.map(importSigningKey));
   }
 
-  async payRange(provider: ProviderId, asset: ChainAsset, rate: PayRate): Promise<PayRange> {
+  async payRange(provider: ProviderId, chain: FromChain, asset: ChainAsset, rate: PayRate): Promise<PayRange> {
     const fields = await this.#call("GET", "/v1/pay/range", {
-      query: { provider, asset: RELAY_ASSETS[asset], rate },
+      query: { provider, from: CHAIN_FACTS[chain].relayName, asset: RELAY_ASSETS[asset], rate },
     });
     return {
       provider: readProvider(fields, provider),
+      chain: readChain(fields, chain),
       asset: readAsset(fields, asset),
       rate: readRate(fields, rate),
-      minXmr: readNumber(fields, "minXmr"),
-      maxXmr: readNullableNumber(fields, "maxXmr"),
+      minFrom: readNumber(fields, "minFrom"),
+      maxFrom: readNullableNumber(fields, "maxFrom"),
     };
   }
 
-  async payQuote(provider: ProviderId, asset: ChainAsset, rate: PayRate, xmrAmount: string): Promise<PayQuote> {
+  async payQuote(
+    provider: ProviderId,
+    chain: FromChain,
+    asset: ChainAsset,
+    rate: PayRate,
+    fromAmount: string,
+  ): Promise<PayQuote> {
     const fields = await this.#call("GET", "/v1/pay/quote", {
-      query: { provider, asset: RELAY_ASSETS[asset], rate, xmrAmount },
+      query: { provider, from: CHAIN_FACTS[chain].relayName, asset: RELAY_ASSETS[asset], rate, fromAmount },
     });
-    if (readString(fields, "xmrAmount") !== xmrAmount) {
+    if (readString(fields, "fromAmount") !== fromAmount) {
       throw new RelayError("failed", "The relay answered a quote for another amount.");
     }
     const limit = readNullableString(fields, "limit");
     return {
       provider: readProvider(fields, provider),
+      chain: readChain(fields, chain),
       asset: readAsset(fields, asset),
       rate: readRate(fields, rate),
-      xmrAmount,
+      fromAmount,
       amount: readNullableNumber(fields, "amount"),
       rateId: readNullableString(fields, "rateId"),
       validUntil: readNullableString(fields, "validUntil"),
@@ -105,8 +116,8 @@ export class RelayClient implements GateClient {
       withdrawalFee: readNullableNumber(fields, "withdrawalFee"),
       speedMinutes: readNullableText(fields, "speedMinutes"),
       limit: limit === null ? null : readChoice(fields, "limit", LIMITS),
-      minXmr: readNullableNumber(fields, "minXmr"),
-      maxXmr: readNullableNumber(fields, "maxXmr"),
+      minFrom: readNullableNumber(fields, "minFrom"),
+      maxFrom: readNullableNumber(fields, "maxFrom"),
     };
   }
 
@@ -114,46 +125,17 @@ export class RelayClient implements GateClient {
     const fields = await this.#call("POST", "/v1/pay/swaps", {
       body: {
         provider: request.provider,
+        from: CHAIN_FACTS[request.chain].relayName,
         asset: RELAY_ASSETS[request.asset],
         rate: request.rate,
-        xmrAmount: request.xmrAmount,
+        fromAmount: request.fromAmount,
         address: request.address,
         refundAddress: request.refundAddress,
         rateId: request.rateId,
       },
       headers: { [CREATION_KEY_HEADER]: request.creationKey },
     });
-    const payoutAddress = readString(fields, "payoutAddress");
-    if (payoutAddress.toLowerCase() !== request.address.toLowerCase()) {
-      throw new RelayError("failed", "The relay opened a swap for another address.");
-    }
-    // The relay hands back the refund address that the exchanger recorded, so that a swap never promises a refund to
-    // an address that the exchanger does not hold.
-    const refundAddress = readNullableString(fields, "refundAddress");
-    if (refundAddress !== request.refundAddress) {
-      throw new RelayError("failed", "The relay opened a swap with another refund address.");
-    }
-    // The page tells the user to send exactly the amount of the swap, so it must be the amount of the request, and
-    // the deposit address must be one of Monero, as the relay checks before it signs.
-    const xmrAmount = readNumber(fields, "xmrAmount");
-    if (!amountsMatch(Number(request.xmrAmount), xmrAmount)) {
-      throw new RelayError("failed", "The relay opened a swap for another amount of XMR.");
-    }
-    const depositAddress = readString(fields, "depositAddress");
-    if (!MONERO_DEPOSIT_PATTERN.test(depositAddress)) {
-      throw new RelayError("failed", "The relay opened a swap with a deposit address that is not a Monero address.");
-    }
-    return {
-      id: readString(fields, "id"),
-      provider: readProvider(fields, request.provider),
-      asset: readAsset(fields, request.asset),
-      amount: readNumber(fields, "amount"),
-      xmrAmount,
-      depositAddress,
-      payoutAddress,
-      refundAddress,
-      readToken: readString(fields, "readToken"),
-    };
+    return createdPayOf(request, fields);
   }
 
   async readSwap(provider: ProviderId, id: string, readToken: string): Promise<SwapState> {
@@ -244,12 +226,66 @@ export class RelayClient implements GateClient {
   }
 }
 
+/**
+ * The swap that the relay opened for [request], read from the fields of its answer, each checked against the request:
+ * the page shows the user where to send and how much, so nothing of it may come from anywhere but a checked answer.
+ */
+export function createdPayOf(request: PayRequest, fields: Fields): CreatedPay {
+  const facts = CHAIN_FACTS[request.chain];
+  const payoutAddress = readString(fields, "payoutAddress");
+  if (payoutAddress.toLowerCase() !== request.address.toLowerCase()) {
+    throw new RelayError("failed", "The relay opened a swap for another address.");
+  }
+  // The relay hands back the refund address that the exchanger recorded, so that a swap never promises a refund to
+  // an address that the exchanger does not hold. The chain says whether two spellings name one account; the record
+  // keeps the spelling of the user, which is the one they compare with their wallet (D-25 of the scan of 13 Oct 2026).
+  const recorded = readNullableString(fields, "refundAddress");
+  if (recorded === null || !facts.sameAddress(recorded, request.refundAddress)) {
+    throw new RelayError("failed", "The relay opened a swap with another refund address.");
+  }
+  // The page tells the user to send exactly the amount of the swap, so it must be the amount of the request, and
+  // the deposit address must be one of the chain of origin, as the relay checks before it signs.
+  const fromAmount = readNumber(fields, "fromAmount");
+  if (!amountsMatch(Number(request.fromAmount), fromAmount)) {
+    throw new RelayError("failed", `The relay opened a swap for another amount of ${facts.coin}.`);
+  }
+  const depositAddress = readString(fields, "depositAddress");
+  if (!facts.isDepositAddress(depositAddress)) {
+    throw new RelayError("failed", "The relay opened a swap with a deposit address that is not one of the chain.");
+  }
+  // An id of another form than the relay issues could never be opened again in the app (D-18).
+  const id = readString(fields, "id");
+  if (!SWAP_ID_PATTERN.test(id))
+    throw new RelayError("failed", "The relay opened a swap with an id of the wrong form.");
+  return {
+    id,
+    provider: readProvider(fields, request.provider),
+    chain: readChain(fields, request.chain),
+    asset: readAsset(fields, request.asset),
+    amount: readNumber(fields, "amount"),
+    fromAmount,
+    depositAddress,
+    payoutAddress,
+    refundAddress: request.refundAddress,
+    validUntil: readNullableString(fields, "validUntil"),
+    readToken: readString(fields, "readToken"),
+  };
+}
+
 /** The coin of an answer, which must be the coin of the request. */
 function readAsset(fields: Fields, asset: ChainAsset): ChainAsset {
   if (readString(fields, "asset") !== RELAY_ASSETS[asset]) {
     throw new RelayError("failed", "The relay answered for another coin.");
   }
   return asset;
+}
+
+/** The chain of origin of an answer, which must be the chain of the request. */
+function readChain(fields: Fields, chain: FromChain): FromChain {
+  if (readString(fields, "from") !== CHAIN_FACTS[chain].relayName) {
+    throw new RelayError("failed", "The relay answered for another chain.");
+  }
+  return chain;
 }
 
 /** The provider of an answer, which must be the provider of the request. */

@@ -1,10 +1,12 @@
 import { useSyncExternalStore } from "react";
 
 import {
+  FROM_CHAINS,
   PROVIDER_IDS,
   SWAP_STATUSES,
   type ChainAsset,
   type CreatedPay,
+  type FromChain,
   type PayRate,
   type ProviderId,
   type SwapState,
@@ -16,9 +18,12 @@ export interface SwapRecord {
   id: string;
   provider: ProviderId;
   readToken: string;
+  /** The chain the coins came from. */
+  chain: FromChain;
   asset: ChainAsset;
   rate: PayRate;
-  xmrAmount: number;
+  /** The amount of the coin of that chain that was sent. */
+  fromAmount: number;
   amount: number;
   depositAddress: string;
   payoutAddress: string;
@@ -62,23 +67,25 @@ export function findSwap(id: string): SwapRecord | null {
 }
 
 /**
- * A record of a swap that the exchanger just opened. The time to send comes with the first read of its state: the
- * quote had a time of its own, for the rate, which is not the time of the deposit.
+ * A record of a swap that the exchanger just opened. The time to send is the one the exchanger named at the creation,
+ * or comes with the first read of its state: the quote had a time of its own, for the rate, which is not the time of
+ * the deposit.
  */
 export function recordOf(created: CreatedPay, rate: PayRate): SwapRecord {
   return {
     id: created.id,
     provider: created.provider,
     readToken: created.readToken,
+    chain: created.chain,
     asset: created.asset,
     rate,
-    xmrAmount: created.xmrAmount,
+    fromAmount: created.fromAmount,
     amount: created.amount,
     depositAddress: created.depositAddress,
     payoutAddress: created.payoutAddress,
     refundAddress: created.refundAddress,
     createdAt: new Date().toISOString(),
-    validUntil: null,
+    validUntil: created.validUntil,
     status: "waiting",
     depositHash: null,
     payoutHash: null,
@@ -133,17 +140,27 @@ function load(): readonly SwapRecord[] {
     if (raw === null) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.map(withProvider).filter(isRecord);
+    return parsed.map(upgradedRecord).filter(isRecord);
   } catch {
     return [];
   }
 }
 
-/** A record of the build before 12 Oct 2026 named no provider: ChangeNOW was the only one (D-04 of the scan). */
-function withProvider(value: unknown): unknown {
+/**
+ * A record of an older build in the form of this one, each change on its own (D-19 of the scan of 13 Oct 2026):
+ * before 12 Oct 2026 a record named no provider, since ChangeNOW was the only one (D-04 of the scan of that day);
+ * before 13 Oct 2026 it wrote its amount as xmrAmount and named no chain, since Monero was the only chain.
+ */
+export function upgradedRecord(value: unknown): unknown {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
-  const record = value as Record<string, unknown>;
-  return record.provider === undefined ? { ...record, provider: "changenow" } : record;
+  const record = { ...(value as Record<string, unknown>) };
+  if (record.provider === undefined) record.provider = "changenow";
+  if (record.fromAmount === undefined && typeof record.xmrAmount === "number") {
+    record.fromAmount = record.xmrAmount;
+    delete record.xmrAmount;
+  }
+  if (record.chain === undefined) record.chain = "XMR";
+  return record;
 }
 
 const isText = (value: unknown): boolean => typeof value === "string";
@@ -152,16 +169,17 @@ const isNullableNumber = (value: unknown): boolean => value === null || typeof v
 
 // A record that another release wrote, or that a hand changed, stays out rather than breaking a page: every field
 // must have its form, and the state must be one the pages know.
-function isRecord(value: unknown): value is SwapRecord {
+export function isRecord(value: unknown): value is SwapRecord {
   if (typeof value !== "object" || value === null) return false;
   const record = value as Record<string, unknown>;
   return (
     isText(record.id) &&
     PROVIDER_IDS.some((provider) => provider === record.provider) &&
     isText(record.readToken) &&
+    FROM_CHAINS.some((chain) => chain === record.chain) &&
     (record.asset === "ETH" || record.asset === "USDG") &&
     (record.rate === "fixed" || record.rate === "floating") &&
-    typeof record.xmrAmount === "number" &&
+    typeof record.fromAmount === "number" &&
     typeof record.amount === "number" &&
     isText(record.depositAddress) &&
     isText(record.payoutAddress) &&

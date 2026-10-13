@@ -1,12 +1,22 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { formatAsset, formatBalance, formatTimeLeft, formatXmr } from "../src/format.ts";
+import { formatAsset, formatBalance, formatFrom, formatRate, formatTimeLeft } from "../src/format.ts";
 
-test("writes amounts of XMR with up to eight decimals and no trailing zeros", () => {
-  assert.equal(formatXmr(0.5), "0.5");
-  assert.equal(formatXmr(1), "1");
-  assert.equal(formatXmr(0.01186790001), "0.0118679");
-  assert.equal(formatXmr(1286.4219), "1286.4219");
+test("writes an amount of the coin of a chain with the decimals of its form, and no trailing zeros", () => {
+  assert.equal(formatFrom(0.5, "XMR"), "0.5");
+  assert.equal(formatFrom(1, "XMR"), "1");
+  assert.equal(formatFrom(0.01186790001, "XMR"), "0.0118679");
+  assert.equal(formatFrom(1286.4219, "XMR"), "1286.4219");
+  assert.equal(formatFrom(1000, "STRK"), "1000");
+  assert.equal(formatFrom(18.8802983, "STRK"), "18.880298", "six decimals for STRK");
+  assert.equal(formatFrom(0.1234567, "STRK"), "0.123457");
+});
+
+test("writes a rate below one with three significant digits, and above one with the decimals of the coin", () => {
+  assert.equal(formatRate(0.087761, "USDG"), "0.0878");
+  assert.equal(formatRate(0.000034397, "ETH"), "0.0000344");
+  assert.equal(formatRate(312.4, "USDG"), "312.4");
+  assert.equal(formatRate(0.5, "USDG"), "0.5");
 });
 
 test("writes amounts of a coin of Robinhood Chain with the decimals of the coin", () => {

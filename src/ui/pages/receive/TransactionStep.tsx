@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
+import { EVM_ADDRESS_PATTERN } from "../../../chain.ts";
 import { COPY } from "../../../copy.ts";
+import { CHAIN_FACTS } from "../../../gate/chains.ts";
 import { useDraft } from "../../../gate/draft.tsx";
 import { describeError } from "../../../gate/errors.ts";
-import { isMoneroMainnetAddress } from "../../../gate/monero-address.ts";
 import { randomToken } from "../../../gate/signature.ts";
 import { putSwap, recordOf } from "../../../gate/store.ts";
 import { client } from "../../../gate/use-client.ts";
-import { formatAsset, formatTimeLeft, formatXmr } from "../../../format.ts";
+import { formatAsset, formatFrom, formatTimeLeft } from "../../../format.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useNow } from "../../../use-now.ts";
 import { useWallet } from "../../../wallet/provider.ts";
@@ -45,7 +46,7 @@ export function TransactionStep() {
     refreshingFor.current = quote.rateId;
     let live = true;
     client
-      .payQuote(quote.provider, quote.asset, quote.rate, quote.xmrAmount)
+      .payQuote(quote.provider, quote.chain, quote.asset, quote.rate, quote.fromAmount)
       .then((found) => {
         if (live) {
           setFailure(null);
@@ -73,11 +74,20 @@ export function TransactionStep() {
     return null;
   }
 
+  const chain = draft.chain;
+  const facts = CHAIN_FACTS[chain];
+  const words = COPY.chains[chain];
   const refund = draft.refundAddress;
-  const refundValid = isMoneroMainnetAddress(refund);
-  const refundError = refund !== "" && !refundValid ? COPY.receive.refundInvalid : null;
+  const refundValid = facts.isRefundAddress(refund);
+  // The address of the wallet on Robinhood Chain stands right under the field: pasted here by mistake, it gets its
+  // own line, since no chain of origin takes it (D-17 of the scan of 13 Oct 2026).
+  const refundError =
+    refund === "" || refundValid
+      ? null
+      : EVM_ADDRESS_PATTERN.test(refund)
+        ? COPY.receive.refundEvm(words.name)
+        : COPY.receive.refundInvalid[chain];
   const timeLeft = validUntil === null ? null : formatTimeLeft(validUntil, now);
-  const chain = COPY.chains[draft.chain];
   const provider = COPY.providers[quote.provider];
 
   const paste = async () => {
@@ -94,9 +104,10 @@ export function TransactionStep() {
     // The request is the quote the user saw, and nothing of the draft beside the address (D-08 of the scan).
     const request = {
       provider: quote.provider,
+      chain: quote.chain,
       asset: quote.asset,
       rate: quote.rate,
-      xmrAmount: quote.xmrAmount,
+      fromAmount: quote.fromAmount,
       address: connection.address,
       refundAddress: refund,
       rateId: quote.rateId,
@@ -121,13 +132,13 @@ export function TransactionStep() {
       <Stepper current={4} />
       <Glass>
         <Field
-          label={COPY.receive.refundField}
+          label={COPY.receive.refundField(words.name)}
           mono
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
-          hint={COPY.receive.refundHint}
-          good={refundValid ? COPY.receive.refundValid : null}
+          hint={COPY.receive.refundHint[chain]}
+          good={refundValid ? COPY.receive.refundValid(words.name) : null}
           value={refund}
           onChange={(event) => update({ refundAddress: event.target.value.trim() })}
           error={refundError}
@@ -137,13 +148,13 @@ export function TransactionStep() {
             </PillButton>
           }
         />
-        <p className="t-small faint">{COPY.receive.refundTip}</p>
+        <p className="t-small faint">{COPY.receive.refundTip[chain]}</p>
       </Glass>
       <Surface>
         <p className="t-card-title">{COPY.receive.review}</p>
         <dl className="facts">
           <Fact label={COPY.receive.youSend}>
-            {formatXmr(Number(draft.xmrAmount))} {chain.coin}
+            {formatFrom(Number(draft.fromAmount), chain)} {facts.coin}
           </Fact>
           <Fact label={COPY.receive.youGet}>
             {formatAsset(quote.amount, draft.asset)} {draft.asset}
@@ -157,13 +168,15 @@ export function TransactionStep() {
                 </span>
               )}
               {quote.depositFee !== null && quote.depositFee > 0 && (
-                <span className="t-small">{COPY.receive.feeDepositLine(formatXmr(quote.depositFee))}</span>
+                <span className="t-small">
+                  {COPY.receive.feeDepositLine(formatFrom(quote.depositFee, chain), facts.coin)}
+                </span>
               )}
               {(quote.withdrawalFee === null || quote.withdrawalFee === 0) &&
                 (quote.depositFee === null || quote.depositFee === 0) && (
                   <span className="t-small">{COPY.receive.feesIncluded}</span>
                 )}
-              <span className="t-small soft">{COPY.receive.feeMoneroLine}</span>
+              <span className="t-small soft">{COPY.receive.feeWalletLine(words.name)}</span>
             </span>
           </Fact>
           <Fact label={COPY.receive.rateLabel}>
@@ -182,7 +195,7 @@ export function TransactionStep() {
             </Fact>
           )}
         </dl>
-        {!refundValid && !ranOut && <p className="t-small soft text-center">{COPY.receive.refundNeeded}</p>}
+        {!refundValid && !ranOut && <p className="t-small soft text-center">{COPY.receive.refundNeeded(words.name)}</p>}
         {ranOut && failure === null && (
           <Notice tone="warn">
             <Waiting className="">{COPY.receive.quoteRanOut}</Waiting>

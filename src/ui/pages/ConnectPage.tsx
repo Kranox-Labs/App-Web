@@ -115,7 +115,7 @@ export function ConnectPage() {
   }
 
   const scan = scanned?.toLowerCase() === connection.address.toLowerCase() ? draft.scan : null;
-  const report = checkPrivacy({ recipient: connection.address, xmrAmount: null, swaps, scan, now });
+  const report = checkPrivacy({ recipient: connection.address, chain: null, fromAmount: null, swaps, scan, now });
 
   return (
     <PageFrame title={COPY.connect.title} lead={COPY.connect.lead}>

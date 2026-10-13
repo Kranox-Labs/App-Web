@@ -1,12 +1,12 @@
 import { formatAgo, formatDay } from "../format.ts";
 import type { SwapRecord } from "./store.ts";
-import type { AddressScan } from "./types.ts";
+import type { AddressScan, FromChain } from "./types.ts";
 
 // The privacy check of the gate, after the three rules of the app (apps/wallet/lib/privacy/privacy_check.dart): the
 // address, the amount, and the timing. In a browser it reads only what this browser knows: the swaps made here and
 // the public history of the address that receives. It advises and blocks nothing.
 
-/** Two amounts of XMR count as the same when they differ by at most this share of the larger one. */
+/** Two amounts of one coin count as the same when they differ by at most this share of the larger one. */
 const AMOUNT_TOLERANCE = 0.02;
 
 /** The rule of the amount looks back this long. */
@@ -32,8 +32,10 @@ export interface PrivacyReport {
 export interface PrivacyInput {
   /** The address on Robinhood Chain that receives, or null before a wallet is connected. */
   recipient: string | null;
-  /** The XMR to send, or null before an amount is typed. */
-  xmrAmount: number | null;
+  /** The chain the coins come from, or null before one is chosen. */
+  chain: FromChain | null;
+  /** The amount of its coin to send, or null before an amount is typed. */
+  fromAmount: number | null;
   /** The swaps that this browser made. */
   swaps: readonly SwapRecord[];
   /** The public history of the recipient, or null while it is unread. */
@@ -41,10 +43,10 @@ export interface PrivacyInput {
   now: number;
 }
 
-export function checkPrivacy({ recipient, xmrAmount, swaps, scan, now }: PrivacyInput): PrivacyReport {
+export function checkPrivacy({ recipient, chain, fromAmount, swaps, scan, now }: PrivacyInput): PrivacyReport {
   return {
     address: recipient === null ? null : checkAddress(recipient, swaps, scan),
-    amount: xmrAmount === null ? null : checkAmount(xmrAmount, swaps, now),
+    amount: chain === null || fromAmount === null ? null : checkAmount(chain, fromAmount, swaps, now),
     timing: checkTiming(swaps, now),
     addressChecked: recipient === null || scan !== null,
   };
@@ -78,11 +80,13 @@ function checkAddress(recipient: string, swaps: readonly SwapRecord[], scan: Add
   return null;
 }
 
-function checkAmount(xmrAmount: number, swaps: readonly SwapRecord[], now: number): Finding | null {
+// An amount pairs with the amounts of the same coin: a swap of STRK says nothing about one of XMR.
+function checkAmount(chain: FromChain, fromAmount: number, swaps: readonly SwapRecord[], now: number): Finding | null {
   const match = swaps.find(
     (swap) =>
+      swap.chain === chain &&
       now - new Date(swap.createdAt).getTime() <= AMOUNT_WINDOW_MS &&
-      Math.abs(swap.xmrAmount - xmrAmount) <= AMOUNT_TOLERANCE * Math.max(swap.xmrAmount, xmrAmount),
+      Math.abs(swap.fromAmount - fromAmount) <= AMOUNT_TOLERANCE * Math.max(swap.fromAmount, fromAmount),
   );
   if (match === undefined) return null;
   return {

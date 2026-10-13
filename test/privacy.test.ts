@@ -2,21 +2,23 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { checkPrivacy, warningCount } from "../src/gate/privacy.ts";
 import type { SwapRecord } from "../src/gate/store.ts";
+import type { FromChain } from "../src/gate/types.ts";
 
 const NOW = Date.parse("2026-10-11T12:00:00Z");
 const RECIPIENT = "0x7a3fC0e1b9D24A6c58E0f3B1d9a7C4e2F6b8D015";
 const OTHER = "0x57f31ad4b64095347F87eDB1675566DAfF5EC886";
 
-/** A swap of this browser, [hoursAgo] hours ago, of [xmrAmount] XMR into [payoutAddress]. */
-function swap(hoursAgo: number, xmrAmount: number, payoutAddress: string): SwapRecord {
+/** A swap of this browser, [hoursAgo] hours ago, of [fromAmount] of the coin of [chain] into [payoutAddress]. */
+function swap(hoursAgo: number, fromAmount: number, payoutAddress: string, chain: FromChain = "XMR"): SwapRecord {
   return {
     id: `swap${hoursAgo}`,
     provider: "changenow",
     readToken: "token",
     asset: "USDG",
     rate: "fixed",
-    xmrAmount,
-    amount: xmrAmount * 300,
+    chain,
+    fromAmount,
+    amount: fromAmount * 300,
     depositAddress: "4deposit",
     payoutAddress,
     refundAddress: null,
@@ -37,7 +39,8 @@ const freshScan = { address: RECIPIENT, transfers: 0, firstSeenAt: null, lastSee
 test("passes a fresh address, a new amount, and a day since the last swap", () => {
   const report = checkPrivacy({
     recipient: RECIPIENT,
-    xmrAmount: 0.5,
+    chain: "XMR",
+    fromAmount: 0.5,
     swaps: [swap(30, 0.7, OTHER)],
     scan: freshScan,
     now: NOW,
@@ -49,7 +52,8 @@ test("passes a fresh address, a new amount, and a day since the last swap", () =
 test("warns about an address that received a swap here, and about one with a public history", () => {
   const used = checkPrivacy({
     recipient: RECIPIENT,
-    xmrAmount: 0.5,
+    chain: "XMR",
+    fromAmount: 0.5,
     swaps: [swap(30, 0.7, RECIPIENT)],
     scan: freshScan,
     now: NOW,
@@ -57,7 +61,8 @@ test("warns about an address that received a swap here, and about one with a pub
   assert.match(used.address?.title ?? "", /In 1 of your swaps/);
   const history = checkPrivacy({
     recipient: RECIPIENT,
-    xmrAmount: 0.5,
+    chain: "XMR",
+    fromAmount: 0.5,
     swaps: [],
     scan: { ...freshScan, transfers: 3 },
     now: NOW,
@@ -66,7 +71,8 @@ test("warns about an address that received a swap here, and about one with a pub
   // The letters of an address count in any case.
   const cased = checkPrivacy({
     recipient: RECIPIENT.toLowerCase(),
-    xmrAmount: 0.5,
+    chain: "XMR",
+    fromAmount: 0.5,
     swaps: [swap(30, 0.7, RECIPIENT)],
     scan: null,
     now: NOW,
@@ -78,7 +84,8 @@ test("warns about an address that received a swap here, and about one with a pub
 test("warns about an amount within two percent of a swap of the last week", () => {
   const close = checkPrivacy({
     recipient: RECIPIENT,
-    xmrAmount: 0.505,
+    chain: "XMR",
+    fromAmount: 0.505,
     swaps: [swap(48, 0.5, OTHER)],
     scan: freshScan,
     now: NOW,
@@ -86,7 +93,8 @@ test("warns about an amount within two percent of a swap of the last week", () =
   assert.match(close.amount?.title ?? "", /Matches your swap/);
   const apart = checkPrivacy({
     recipient: RECIPIENT,
-    xmrAmount: 0.52,
+    chain: "XMR",
+    fromAmount: 0.52,
     swaps: [swap(48, 0.5, OTHER)],
     scan: freshScan,
     now: NOW,
@@ -94,7 +102,8 @@ test("warns about an amount within two percent of a swap of the last week", () =
   assert.equal(apart.amount, null);
   const old = checkPrivacy({
     recipient: RECIPIENT,
-    xmrAmount: 0.5,
+    chain: "XMR",
+    fromAmount: 0.5,
     swaps: [swap(24 * 8, 0.5, OTHER)],
     scan: freshScan,
     now: NOW,
@@ -103,10 +112,38 @@ test("warns about an amount within two percent of a swap of the last week", () =
 });
 
 test("warns about a swap of the last day", () => {
-  const recent = checkPrivacy({ recipient: null, xmrAmount: null, swaps: [swap(2, 0.9, OTHER)], scan: null, now: NOW });
+  const recent = checkPrivacy({
+    recipient: null,
+    chain: null,
+    fromAmount: null,
+    swaps: [swap(2, 0.9, OTHER)],
+    scan: null,
+    now: NOW,
+  });
   assert.match(recent.timing?.title ?? "", /2 hours ago/);
   assert.equal(recent.address, null, "no address, no rule of the address");
   assert.equal(recent.amount, null, "no amount, no rule of the amount");
   assert.equal(recent.addressChecked, true);
   assert.equal(warningCount(recent), 1);
+});
+
+test("pairs an amount with the swaps of the same coin only", () => {
+  const strk = checkPrivacy({
+    recipient: RECIPIENT,
+    chain: "STRK",
+    fromAmount: 0.5,
+    swaps: [swap(48, 0.5, OTHER)],
+    scan: freshScan,
+    now: NOW,
+  });
+  assert.equal(strk.amount, null, "half an XMR says nothing about half a STRK");
+  const same = checkPrivacy({
+    recipient: RECIPIENT,
+    chain: "STRK",
+    fromAmount: 1000,
+    swaps: [swap(48, 1010, OTHER, "STRK")],
+    scan: freshScan,
+    now: NOW,
+  });
+  assert.match(same.amount?.title ?? "", /Matches your swap/);
 });

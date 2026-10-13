@@ -5,9 +5,10 @@ import type { PayQuote } from "../src/gate/types.ts";
 
 const quote: PayQuote = {
   provider: "changenow",
+  chain: "XMR",
   asset: "USDG",
   rate: "fixed",
-  xmrAmount: "0.1",
+  fromAmount: "0.1",
   amount: 48.35,
   rateId: "rate",
   validUntil: "2026-10-12T12:00:00.000Z",
@@ -16,18 +17,20 @@ const quote: PayQuote = {
   withdrawalFee: null,
   speedMinutes: null,
   limit: null,
-  minXmr: null,
-  maxXmr: null,
+  minFrom: null,
+  maxFrom: null,
 };
 
-test("a quote answers the draft with the same provider, coin, rate, and amount only", () => {
-  const draft = { provider: "changenow", asset: "USDG", rate: "fixed", xmrAmount: "0.1" };
+test("a quote answers the draft with the same provider, chain, coin, rate, and amount only", () => {
+  const draft = { provider: "changenow", chain: "XMR", asset: "USDG", rate: "fixed", fromAmount: "0.1" };
   assert.equal(quoteMatches(quote, draft), true);
   assert.equal(quoteMatches(quote, { ...draft, rate: "floating" }), false);
   assert.equal(quoteMatches(quote, { ...draft, provider: "simpleswap" }), false);
+  assert.equal(quoteMatches(quote, { ...draft, chain: "STRK" }), false);
   assert.equal(quoteMatches(quote, { ...draft, asset: "ETH" }), false);
-  assert.equal(quoteMatches(quote, { ...draft, xmrAmount: "0.10" }), false);
+  assert.equal(quoteMatches(quote, { ...draft, fromAmount: "0.10" }), false);
   assert.equal(quoteMatches(quote, { ...draft, provider: null }), false);
+  assert.equal(quoteMatches(quote, { ...draft, chain: null }), false);
 });
 
 test("a fixed rate holds until its time, and a floating one always", () => {

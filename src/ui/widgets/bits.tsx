@@ -410,6 +410,7 @@ export function ChoiceCard({
   title,
   text,
   note,
+  disabled = false,
   onClick,
 }: {
   on: boolean;
@@ -417,10 +418,18 @@ export function ChoiceCard({
   title: string;
   text: string;
   note: string | null;
+  /** A card that cannot be chosen now, such as a rate that the chosen provider does not serve. */
+  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
-    <button type="button" className={on ? "choice choice--on" : "choice"} aria-pressed={on} onClick={onClick}>
+    <button
+      type="button"
+      className={on ? "choice choice--on" : "choice"}
+      aria-pressed={on}
+      disabled={disabled}
+      onClick={onClick}
+    >
       <span className="choice__head">
         <Icon name={icon} size={18} className={on ? "accent" : "soft"} />
         <span className="t-card-title">{title}</span>

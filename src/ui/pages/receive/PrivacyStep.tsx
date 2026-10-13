@@ -64,7 +64,14 @@ export function PrivacyStep() {
   }
 
   const scan = scanned?.toLowerCase() === address.toLowerCase() ? draft.scan : null;
-  const report = checkPrivacy({ recipient: address, xmrAmount: Number(draft.xmrAmount), swaps, scan, now });
+  const report = checkPrivacy({
+    recipient: address,
+    chain: draft.chain,
+    fromAmount: Number(draft.fromAmount),
+    swaps,
+    scan,
+    now,
+  });
   const warnings = warningCount(report);
   const rules = [
     {
@@ -102,7 +109,7 @@ export function PrivacyStep() {
       </Surface>
       <Surface>
         <AddressBox label={COPY.receive.arrivesAt} text={address} />
-        {scan !== null && scan.transfers === 0 ? (
+        {scan !== null && scan.transfers === 0 && report.address === null ? (
           <Notice tone="good">{COPY.connect.fresh}</Notice>
         ) : scan === null && scanFailed ? (
           <Notice>{COPY.connect.unchecked}</Notice>

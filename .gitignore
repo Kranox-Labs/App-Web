@@ -1,6 +1,7 @@
 # Built and installed files stay out of the repository.
 node_modules/
 dist/
+build/
 
 # The settings of a build of your own. The settings of the two builds of Kranox are in .env.development and
 # .env.production, which hold no secret: the app holds no key.

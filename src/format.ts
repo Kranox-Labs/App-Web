@@ -1,14 +1,24 @@
-import { CHAIN_ASSETS, XMR_DECIMALS } from "./chain.ts";
-import type { ChainAsset } from "./gate/types.ts";
+import { CHAIN_ASSETS } from "./chain.ts";
+import { CHAIN_FACTS } from "./gate/chains.ts";
+import type { ChainAsset, FromChain } from "./gate/types.ts";
 
-/** An amount of XMR with up to eight decimals and no trailing zeros. */
-export function formatXmr(amount: number): string {
-  return trimZeros(amount.toFixed(XMR_DECIMALS));
+/** An amount of the coin of [chain] with the decimals of that coin in the form, and no trailing zeros. */
+export function formatFrom(amount: number, chain: FromChain): string {
+  return trimZeros(amount.toFixed(CHAIN_FACTS[chain].decimals));
 }
 
 /** An amount of a coin of Robinhood Chain with the decimals of that coin. */
 export function formatAsset(amount: number, asset: ChainAsset): string {
   return trimZeros(amount.toFixed(CHAIN_ASSETS[asset].decimals));
+}
+
+/**
+ * A rate, the coin of Robinhood Chain that one coin of a chain buys: below one, three significant digits, so that
+ * "1 STRK ≈ 0.0878 USDG" says more than "0.09"; above one, the decimals of the coin.
+ */
+export function formatRate(rate: number, asset: ChainAsset): string {
+  if (rate > 0 && rate < 1) return trimZeros(rate.toPrecision(3));
+  return formatAsset(rate, asset);
 }
 
 /** A balance of a coin of Robinhood Chain with all the decimals of that coin, as a balance card shows one. */

@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 
 import { ROBINHOOD_CHAIN } from "../../../chain.ts";
-import { isXmrAmount } from "../../../gate/amount.ts";
+import { isFromAmount } from "../../../gate/amount.ts";
 import { useDraft, type Draft } from "../../../gate/draft.tsx";
 import { quoteMatches } from "../../../gate/quote.ts";
+import type { FromChain } from "../../../gate/types.ts";
 import { navigate, ROUTES } from "../../../router.ts";
 import { useWallet, type Connection } from "../../../wallet/provider.ts";
 
@@ -16,8 +17,9 @@ export const STEP_ROUTES = [
   ROUTES.receiveTransaction,
 ] as const;
 
-export function validAmount(text: string): boolean {
-  return isXmrAmount(text);
+/** Whether [text] is an amount of the coin of [chain] that the form takes. */
+export function validAmount(text: string, chain: FromChain): boolean {
+  return isFromAmount(text, chain);
 }
 
 /** Whether a wallet is connected and on Robinhood Chain. */
@@ -28,7 +30,7 @@ export function onRobinhoodChain(connection: Connection | null): connection is C
 /** The last step that the draft lets the user open: each step needs what the steps before it gave. */
 export function openUpTo(draft: Draft, connection: Connection | null): number {
   if (draft.chain === null) return 0;
-  if (!validAmount(draft.xmrAmount)) return 1;
+  if (!validAmount(draft.fromAmount, draft.chain)) return 1;
   if (
     draft.provider === null ||
     draft.quote === null ||

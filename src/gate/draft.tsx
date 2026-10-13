@@ -10,7 +10,8 @@ export interface Draft {
   provider: ProviderId | null;
   asset: ChainAsset;
   rate: PayRate;
-  xmrAmount: string;
+  /** The amount of the coin of the chain to send, as typed. */
+  fromAmount: string;
   quote: PayQuote | null;
   refundAddress: string;
   /** The public history of the address that receives, read on the connect page or the privacy step. */
@@ -30,7 +31,7 @@ const EMPTY: Draft = {
   provider: null,
   asset: "USDG",
   rate: "fixed",
-  xmrAmount: "",
+  fromAmount: "",
   quote: null,
   refundAddress: "",
   scan: null,
@@ -42,8 +43,9 @@ const DraftContext = createContext<DraftStore | null>(null);
 export function DraftProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const update = useCallback((changes: Partial<Draft>) => setDraft((current) => ({ ...current, ...changes })), []);
-  // A new swap starts clean, but keeps what the browser read about the wallet.
-  const reset = useCallback(() => setDraft((current) => ({ ...EMPTY, scan: current.scan })), []);
+  // A new swap starts clean, the history of the wallet too: the swap that just opened changes it, so the next
+  // receive reads it afresh (D-20 of the scan of 13 Oct 2026).
+  const reset = useCallback(() => setDraft(EMPTY), []);
   const store = useMemo(() => ({ draft, update, reset }), [draft, update, reset]);
   return <DraftContext value={store}>{children}</DraftContext>;
 }
