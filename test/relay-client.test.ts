@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { RelayError } from "../src/gate/errors.ts";
-import { createdPayOf } from "../src/gate/relay-client.ts";
-import type { PayRequest } from "../src/gate/types.ts";
+import { createdOutOf, createdPayOf } from "../src/gate/relay-client.ts";
+import type { OutRequest, PayRequest } from "../src/gate/types.ts";
 
 // The addresses of the tests of the relay: a wallet on Robinhood Chain that holds nothing, a refund address on
 // Starknet, the deposit address of a swap at NEAR Intents, and a Monero mainnet subaddress of a throwaway wallet.
@@ -106,4 +106,79 @@ test("reads a swap of XMR with the refund address as typed, and a deposit addres
   assert.equal(created.validUntil, null);
   assert.throws(() => createdPayOf(xmr, { ...fields, depositAddress: STRK_DEPOSIT }), /deposit address/);
   assert.throws(() => createdPayOf(xmr, { ...fields, refundAddress: XMR_REFUND.toLowerCase() }), /refund address/);
+});
+
+// The way out: the answer of the relay to a swap of USDG into XMR through ChangeNOW, as it came on 13 Oct 2026 through
+// the relay on the Mac (the quote; the swap itself was never opened).
+const outRequest: OutRequest = {
+  provider: "changenow",
+  chain: "XMR",
+  asset: "USDG",
+  fromAmount: "50",
+  address: XMR_REFUND,
+  refundAddress: RECIPIENT,
+  creationKey: "key",
+};
+const CHAIN_DEPOSIT = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+const outAnswer = {
+  id: "6c1d9e2f4b7a38",
+  provider: "changenow",
+  from: "usdg",
+  to: "xmr",
+  amount: 0.0836667,
+  fromAmount: 50,
+  depositAddress: CHAIN_DEPOSIT,
+  payoutAddress: XMR_REFUND,
+  refundAddress: RECIPIENT.toLowerCase(),
+  validUntil: null,
+  readToken: "token",
+};
+
+const refusedOut = (fields: Record<string, unknown>, reason: RegExp, what: string) =>
+  assert.throws(
+    () => createdOutOf(outRequest, { ...outAnswer, ...fields }),
+    (error: unknown) => error instanceof RelayError && error.kind === "failed" && reason.test(error.message),
+    what,
+  );
+
+test("reads the swap out the relay opened, with the refund to the wallet as the user spells it", () => {
+  assert.deepEqual(createdOutOf(outRequest, outAnswer), {
+    id: "6c1d9e2f4b7a38",
+    provider: "changenow",
+    chain: "XMR",
+    asset: "USDG",
+    amount: 0.0836667,
+    fromAmount: 50,
+    depositAddress: CHAIN_DEPOSIT,
+    payoutAddress: XMR_REFUND,
+    refundAddress: RECIPIENT,
+    validUntil: null,
+    readToken: "token",
+  });
+  // A Starknet address of the same account in another spelling is the same swap.
+  const strk: OutRequest = { ...outRequest, provider: "oneclick", chain: "STRK", address: STRK_REFUND };
+  const padded = createdOutOf(strk, {
+    ...outAnswer,
+    provider: "oneclick",
+    to: "strk",
+    payoutAddress: `0x${STRK_REFUND.slice(3).toUpperCase()}`,
+    id: CHAIN_DEPOSIT.toLowerCase(),
+    depositAddress: CHAIN_DEPOSIT.toLowerCase(),
+    validUntil: "2026-10-13T13:30:00.000Z",
+  });
+  assert.equal(padded.payoutAddress, `0x${STRK_REFUND.slice(3).toUpperCase()}`);
+  assert.equal(padded.validUntil, "2026-10-13T13:30:00.000Z");
+});
+
+test("refuses an answer of the way out that differs from the request in anything the wallet sends by", () => {
+  refusedOut({ payoutAddress: XMR_DEPOSIT }, /another address/, "another address of the chain");
+  refusedOut({ refundAddress: null }, /another refund address/, "no refund address");
+  refusedOut({ refundAddress: STRK_DEPOSIT.slice(0, 42) }, /another refund address/, "another wallet");
+  refusedOut({ fromAmount: 49 }, /another amount of USDG/, "another amount");
+  refusedOut({ depositAddress: XMR_DEPOSIT }, /deposit address/, "a deposit address that is not on Robinhood Chain");
+  refusedOut({ depositAddress: STRK_DEPOSIT }, /deposit address/, "a deposit address of Starknet");
+  refusedOut({ to: "zec" }, /another chain/, "another chain");
+  refusedOut({ from: "eth" }, /another coin/, "another coin");
+  refusedOut({ provider: "simpleswap" }, /another provider/, "another provider");
+  refusedOut({ id: "bad id!" }, /id of the wrong form/, "an id the app could never open");
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decimalsOf, isFromAmount } from "../src/gate/amount.ts";
+import { decimalsOf, isFromAmount, isOutAmount } from "../src/gate/amount.ts";
 
 test("counts the decimals of an amount", () => {
   assert.equal(decimalsOf("1"), 0);
@@ -26,4 +26,15 @@ test("takes an amount of STRK with up to six decimals", () => {
   assert.equal(isFromAmount("18.880298", "STRK"), true);
   assert.equal(isFromAmount("0.1234567", "STRK"), false, "seven decimals would round on the page");
   assert.equal(isFromAmount("0.12345678", "XMR"), true, "while XMR takes eight");
+});
+
+test("takes an amount to send out with at most six decimals of USDG or ETH", () => {
+  assert.equal(isOutAmount("12.5", "USDG"), true);
+  assert.equal(isOutAmount("0.000001", "USDG"), true);
+  assert.equal(isOutAmount("0.0000001", "USDG"), false, "finer than USDG");
+  assert.equal(isOutAmount("0.000001", "ETH"), true);
+  assert.equal(isOutAmount("0.0000001", "ETH"), false, "finer than the app sends");
+  assert.equal(isOutAmount("0", "USDG"), false);
+  assert.equal(isOutAmount("", "USDG"), false);
+  assert.equal(isOutAmount("1,5", "USDG"), false);
 });

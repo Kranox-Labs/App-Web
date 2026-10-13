@@ -45,7 +45,7 @@ export function PrivacyStep() {
   if (!ok) return null;
 
   const toConnect = () => {
-    update({ returnTo: ROUTES.receivePrivacy });
+    update({ returnTo: ROUTES.inPrivacy });
     navigate(ROUTES.connect);
   };
 
@@ -66,8 +66,7 @@ export function PrivacyStep() {
   const scan = scanned?.toLowerCase() === address.toLowerCase() ? draft.scan : null;
   const report = checkPrivacy({
     recipient: address,
-    chain: draft.chain,
-    fromAmount: Number(draft.fromAmount),
+    amount: draft.chain === null ? null : { direction: "in", chain: draft.chain, value: Number(draft.fromAmount) },
     swaps,
     scan,
     now,
@@ -129,7 +128,7 @@ export function PrivacyStep() {
           </PillButton>
         </div>
       </Surface>
-      <PillButton expand onClick={() => navigate(ROUTES.receiveTransaction)}>
+      <PillButton expand onClick={() => navigate(ROUTES.inTransaction)}>
         {COPY.receive.continue}
       </PillButton>
     </PageFrame>

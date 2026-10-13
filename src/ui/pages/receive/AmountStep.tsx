@@ -136,7 +136,7 @@ export function AmountStep() {
         >
           <p className="t-body-regular soft">{COPY.receive.arrivesText}</p>
         </SwapBox>
-        <PillButton expand disabled={!valid || outside} onClick={() => navigate(ROUTES.receiveProvider)}>
+        <PillButton expand disabled={!valid || outside} onClick={() => navigate(ROUTES.inProvider)}>
           {COPY.receive.continue}
         </PillButton>
       </Glass>

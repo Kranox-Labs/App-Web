@@ -1,10 +1,11 @@
 import { formatAgo, formatDay } from "../format.ts";
 import type { SwapRecord } from "./store.ts";
-import type { AddressScan, FromChain } from "./types.ts";
+import type { AddressScan, ChainAsset, FromChain } from "./types.ts";
 
 // The privacy check of the gate, after the three rules of the app (apps/wallet/lib/privacy/privacy_check.dart): the
 // address, the amount, and the timing. In a browser it reads only what this browser knows: the swaps made here and
-// the public history of the address that receives. It advises and blocks nothing.
+// the public history of the address on Robinhood Chain of the swap, which receives on the way in and sends on the
+// way out. It advises and blocks nothing.
 
 /** Two amounts of one coin count as the same when they differ by at most this share of the larger one. */
 const AMOUNT_TOLERANCE = 0.02;
@@ -29,27 +30,40 @@ export interface PrivacyReport {
   addressChecked: boolean;
 }
 
+/** The amount of a swap in the making, with the coin it is an amount of: the coin of a chain in, or a coin on Robinhood Chain out. */
+export type AmountOf =
+  { direction: "in"; chain: FromChain; value: number } | { direction: "out"; asset: ChainAsset; value: number };
+
 export interface PrivacyInput {
-  /** The address on Robinhood Chain that receives, or null before a wallet is connected. */
+  /** The address on Robinhood Chain of the swap, which receives in or sends out, or null before a wallet is connected. */
   recipient: string | null;
-  /** The chain the coins come from, or null before one is chosen. */
-  chain: FromChain | null;
-  /** The amount of its coin to send, or null before an amount is typed. */
-  fromAmount: number | null;
+  /** The amount to send, or null before an amount is typed. */
+  amount: AmountOf | null;
   /** The swaps that this browser made. */
   swaps: readonly SwapRecord[];
-  /** The public history of the recipient, or null while it is unread. */
+  /** The public history of the address, or null while it is unread. */
   scan: AddressScan | null;
   now: number;
 }
 
-export function checkPrivacy({ recipient, chain, fromAmount, swaps, scan, now }: PrivacyInput): PrivacyReport {
+export function checkPrivacy({ recipient, amount, swaps, scan, now }: PrivacyInput): PrivacyReport {
   return {
     address: recipient === null ? null : checkAddress(recipient, swaps, scan),
-    amount: chain === null || fromAmount === null ? null : checkAmount(chain, fromAmount, swaps, now),
+    amount: amount === null ? null : checkAmount(amount, swaps, now),
     timing: checkTiming(swaps, now),
     addressChecked: recipient === null || scan !== null,
   };
+}
+
+/** The address on Robinhood Chain that took part in [swap]: the one that received in, or the one that sent out. */
+export function chainAddressOf(swap: SwapRecord): string | null {
+  return swap.direction === "in" ? swap.payoutAddress : swap.refundAddress;
+}
+
+/** Whether [swap] moved an amount of the same coin as [amount], the same way. */
+function sameCoin(swap: SwapRecord, amount: AmountOf): boolean {
+  if (swap.direction !== amount.direction) return false;
+  return amount.direction === "in" ? swap.chain === amount.chain : swap.asset === amount.asset;
 }
 
 /** How many rules of [report] warn. */
@@ -57,34 +71,36 @@ export function warningCount(report: PrivacyReport): number {
   return [report.address, report.amount, report.timing].filter((finding) => finding !== null).length;
 }
 
-// The records of the exchanger tie every swap that an address took part in. An address with a public history is no
-// tie, but what arrives joins that history, so the rule says so.
+// The records of the exchanger tie every swap that an address took part in, whether it received or sent. An address
+// with a public history is no tie, but the swap joins that history, so the rule says so.
 function checkAddress(recipient: string, swaps: readonly SwapRecord[], scan: AddressScan | null): Finding | null {
   const target = recipient.toLowerCase();
-  const used = swaps.filter((swap) => swap.payoutAddress.toLowerCase() === target).length;
+  const used = swaps.filter((swap) => chainAddressOf(swap)?.toLowerCase() === target).length;
   if (used > 0) {
     return {
       title: used === 1 ? "In 1 of your swaps" : `In ${used} of your swaps`,
       text:
         used === 1
-          ? "This address received a swap of yours before. The records of the provider tie the two together through it. Use a new account of your wallet for this one."
-          : `This address received ${used} swaps of yours. The records of the provider tie them together through it. Use a new account of your wallet for this one.`,
+          ? "This address took part in a swap of yours before. The records of the provider tie the two together through it. Use a new account of your wallet for this one."
+          : `This address took part in ${used} swaps of yours. The records of the provider tie them together through it. Use a new account of your wallet for this one.`,
     };
   }
   if (scan !== null && scan.transfers > 0) {
     return {
       title: scan.transfers === 1 ? "1 transfer on Robinhood Chain" : `${scan.transfers} transfers on Robinhood Chain`,
-      text: "What arrives joins the public history of this address. For a clean start, make a new account in your wallet and connect it.",
+      text: "This swap joins the public history of this address. For a clean start, make a new account in your wallet and connect it.",
     };
   }
   return null;
 }
 
-// An amount pairs with the amounts of the same coin: a swap of STRK says nothing about one of XMR.
-function checkAmount(chain: FromChain, fromAmount: number, swaps: readonly SwapRecord[], now: number): Finding | null {
+// An amount pairs with the amounts of the same coin the same way: a swap of STRK says nothing about one of XMR, and
+// USDG sent out nothing about XMR sent in.
+function checkAmount(amount: AmountOf, swaps: readonly SwapRecord[], now: number): Finding | null {
+  const fromAmount = amount.value;
   const match = swaps.find(
     (swap) =>
-      swap.chain === chain &&
+      sameCoin(swap, amount) &&
       now - new Date(swap.createdAt).getTime() <= AMOUNT_WINDOW_MS &&
       Math.abs(swap.fromAmount - fromAmount) <= AMOUNT_TOLERANCE * Math.max(swap.fromAmount, fromAmount),
   );

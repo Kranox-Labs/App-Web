@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CHAINS, PROVIDERS, providersOf, ratesOf } from "../src/gate/catalog.ts";
+import { CHAINS, PROVIDERS, providersOf, providersOutOf, ratesOf } from "../src/gate/catalog.ts";
 import { CHAIN_FACTS } from "../src/gate/chains.ts";
 import { COPY } from "../src/copy.ts";
 import { formatFrom } from "../src/format.ts";
@@ -103,4 +103,17 @@ test("the facts of a chain: its coin, its name at the relay, its addresses, and 
     zec.isRefundAddress("zs1z7rejlpsa98s2rrrfkwmaxu53e4ue0ulcrw0h4x5g8f3g2d4kv4v9q0jfgcm3vhk3wm6ajqmp8"),
     false,
   );
+});
+
+test("each provider pays out the chains it takes in, in the same order (13 Oct 2026)", () => {
+  assert.deepEqual(providersOutOf("XMR"), ["changenow", "simpleswap"]);
+  assert.deepEqual(providersOutOf("STRK"), ["oneclick", "changenow"]);
+  assert.deepEqual(providersOutOf("ZEC"), ["oneclick", "changenow", "simpleswap"]);
+  for (const provider of PROVIDERS) {
+    assert.deepEqual([...provider.outChains].sort(), [...provider.chains].sort(), provider.id);
+  }
+  // Every chain has words for the way out beside the words for the way in.
+  for (const chain of CHAINS.map((each) => each.code)) {
+    assert.ok(COPY.chains[chain].outText.length > 0, chain);
+  }
 });

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { AMOUNT_PATTERN, EVM_ADDRESS_PATTERN } from "../../chain.ts";
 import { COPY } from "../../copy.ts";
 import { useDraft } from "../../gate/draft.tsx";
-import { checkPrivacy, warningCount } from "../../gate/privacy.ts";
+import { chainAddressOf, checkPrivacy, warningCount } from "../../gate/privacy.ts";
 import { useSwaps } from "../../gate/store.ts";
 import type { AddressScan } from "../../gate/types.ts";
 import { client } from "../../gate/use-client.ts";
@@ -40,9 +40,14 @@ export function PrivacyPage() {
   }, [address, scanned, update]);
 
   const scan = address !== null && scanned?.toLowerCase() === address.toLowerCase() ? draft.scan : null;
-  const fromAmount =
-    AMOUNT_PATTERN.test(draft.fromAmount) && Number(draft.fromAmount) > 0 ? Number(draft.fromAmount) : null;
-  const report = checkPrivacy({ recipient: address, chain: draft.chain, fromAmount, swaps, scan, now });
+  // The amount of the swap in the making, in or out, whichever the user typed last with its chain chosen.
+  const amount =
+    draft.chain !== null && AMOUNT_PATTERN.test(draft.fromAmount) && Number(draft.fromAmount) > 0
+      ? { direction: "in" as const, chain: draft.chain, value: Number(draft.fromAmount) }
+      : draft.out.chain !== null && AMOUNT_PATTERN.test(draft.out.fromAmount) && Number(draft.out.fromAmount) > 0
+        ? { direction: "out" as const, asset: draft.out.asset, value: Number(draft.out.fromAmount) }
+        : null;
+  const report = checkPrivacy({ recipient: address, amount, swaps, scan, now });
   const warnings = warningCount(report);
 
   const rules = [
@@ -60,8 +65,8 @@ export function PrivacyPage() {
     {
       label: COPY.privacy.amount,
       finding: report.amount,
-      known: fromAmount !== null,
-      clear: fromAmount === null ? COPY.privacy.amountNone : COPY.privacy.amountClear,
+      known: amount !== null,
+      clear: amount === null ? COPY.privacy.amountNone : COPY.privacy.amountClear,
     },
     { label: COPY.privacy.timing, finding: report.timing, known: true, clear: COPY.privacy.timingClear },
   ];
@@ -122,7 +127,7 @@ function ScanCard() {
   const inSwaps =
     result === null
       ? 0
-      : swaps.filter((swap) => swap.payoutAddress.toLowerCase() === result.address.toLowerCase()).length;
+      : swaps.filter((swap) => chainAddressOf(swap)?.toLowerCase() === result.address.toLowerCase()).length;
 
   return (
     <Surface>

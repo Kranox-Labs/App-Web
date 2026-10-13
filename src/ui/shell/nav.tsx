@@ -6,7 +6,8 @@ import type { IconName } from "../widgets/Icon.tsx";
 /** The pages of the sidebar, each with its icon, as the pages of the app. */
 export const NAV: readonly { href: string; label: string; icon: IconName }[] = [
   { href: ROUTES.home, label: COPY.nav.home, icon: "home" },
-  { href: ROUTES.receive, label: COPY.nav.receive, icon: "receive" },
+  { href: ROUTES.in, label: COPY.nav.in, icon: "receive" },
+  { href: ROUTES.out, label: COPY.nav.out, icon: "arrowOutward" },
   { href: ROUTES.activity, label: COPY.nav.activity, icon: "history" },
   { href: ROUTES.privacy, label: COPY.nav.privacy, icon: "privacy" },
 ];
@@ -18,9 +19,10 @@ export const LEGAL_LINKS: readonly { href: string; label: string }[] = [
   { href: `${SITE_ORIGIN}/terms`, label: COPY.legal.terms },
 ];
 
-/** Whether [path] belongs to the page of [href]: the steps of receive belong to receive, a swap to the activity. */
+/** Whether [path] belongs to the page of [href]: the steps of in and out belong to them, a swap to the activity. */
 export function isActive(href: string, path: string): boolean {
-  if (href === ROUTES.receive) return path === ROUTES.receive || path.startsWith(`${ROUTES.receive}/`);
+  if (href === ROUTES.in) return path === ROUTES.in || path.startsWith(`${ROUTES.in}/`);
+  if (href === ROUTES.out) return path === ROUTES.out || path.startsWith(`${ROUTES.out}/`);
   if (href === ROUTES.activity) return path === ROUTES.activity || swapIdOf(path) !== null;
   return path === href;
 }

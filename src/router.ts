@@ -36,14 +36,23 @@ export function navigate(path: string, replace = false): void {
   for (const listener of listeners) listener();
 }
 
-/** The paths of the app. Receive walks through five steps, each with a path, so that the back button steps back. */
+/**
+ * The paths of the app. In, the way into Robinhood Chain, and out, the way back, each walk through five steps with a
+ * path of their own, so that the back button steps back. Until 13 Oct 2026 the way in was "receive": the old paths
+ * open the new ones.
+ */
 export const ROUTES = {
   home: "/",
-  receive: "/receive",
-  receiveAmount: "/receive/amount",
-  receiveProvider: "/receive/provider",
-  receivePrivacy: "/receive/privacy",
-  receiveTransaction: "/receive/transaction",
+  in: "/in",
+  inAmount: "/in/amount",
+  inProvider: "/in/provider",
+  inPrivacy: "/in/privacy",
+  inTransaction: "/in/transaction",
+  out: "/out",
+  outAmount: "/out/amount",
+  outProvider: "/out/provider",
+  outAddress: "/out/address",
+  outSend: "/out/send",
   connect: "/connect",
   activity: "/activity",
   privacy: "/privacy",
@@ -51,6 +60,13 @@ export const ROUTES = {
 } as const;
 
 const SWAP_PATH = /^\/swaps\/([^/]+)$/;
+
+/** The path of the way in that an old path of receive stands for, or null for any other path. */
+export function movedPath(path: string): string | null {
+  if (path === "/receive") return ROUTES.in;
+  if (path.startsWith("/receive/")) return `${ROUTES.in}/${path.slice("/receive/".length)}`;
+  return null;
+}
 
 /** The id of the swap that [path] opens, when it has the form of an id of the relay, or null for another page. */
 export function swapIdOf(path: string): string | null {

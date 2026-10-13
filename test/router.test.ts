@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ROUTES, swapIdOf } from "../src/router.ts";
+import { movedPath, ROUTES, swapIdOf } from "../src/router.ts";
 
 // The id of a swap at ChangeNOW, one at SimpleSwap with the signs some ids carry, and the deposit address of a swap at
 // NEAR Intents, which is its id.
@@ -21,4 +21,14 @@ test("opens no page for an id of another form", () => {
   assert.equal(swapIdOf("/swaps/3a23607%2F1439a3"), null, "a sign the relay never issues");
   assert.equal(swapIdOf("/swaps/"), null);
   assert.equal(swapIdOf("/activity"), null);
+});
+
+test("opens the way in for the old paths of receive, and nothing else (13 Oct 2026)", () => {
+  assert.equal(movedPath("/receive"), ROUTES.in);
+  assert.equal(movedPath("/receive/amount"), ROUTES.inAmount);
+  assert.equal(movedPath("/receive/transaction"), ROUTES.inTransaction);
+  assert.equal(movedPath("/in"), null);
+  assert.equal(movedPath("/out"), null);
+  assert.equal(movedPath("/received"), null);
+  assert.equal(movedPath("/"), null);
 });

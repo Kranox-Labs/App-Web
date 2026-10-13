@@ -7,10 +7,14 @@ export const ROBINHOOD_CHAIN = {
   currency: { name: "Ether", symbol: "ETH", decimals: 18 },
 } as const;
 
-/** The coins that the gate brings in, and how many decimals the app shows for each. */
+/**
+ * The coins that the gate brings in and takes out, and how many decimals the app shows for each: in a balance or a
+ * quote, and in an amount to send on the way out, which must be the exact amount the wallet transfers (six for both:
+ * all of USDG, and more of ETH than any swap needs).
+ */
 export const CHAIN_ASSETS = {
-  ETH: { label: "ETH", decimals: 6 },
-  USDG: { label: "USDG", decimals: 2 },
+  ETH: { label: "ETH", decimals: 6, sendDecimals: 6, chainDecimals: 18 },
+  USDG: { label: "USDG", decimals: 2, sendDecimals: 6, chainDecimals: 6 },
 } as const;
 
 /**

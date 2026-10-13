@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { formatAsset, formatBalance, formatFrom, formatRate, formatTimeLeft } from "../src/format.ts";
+import {
+  formatAsset,
+  formatBalance,
+  formatFrom,
+  formatRate,
+  formatRateOut,
+  formatSend,
+  formatTimeLeft,
+} from "../src/format.ts";
 
 test("writes an amount of the coin of a chain with the decimals of its form, and no trailing zeros", () => {
   assert.equal(formatFrom(0.5, "XMR"), "0.5");
@@ -37,4 +45,12 @@ test("counts the time left down to the second, and stops at zero", () => {
   assert.equal(formatTimeLeft("2026-10-11T12:00:05Z", now), "0:05");
   assert.equal(formatTimeLeft("2026-10-11T12:00:00Z", now), null);
   assert.equal(formatTimeLeft("2026-10-11T11:00:00Z", now), null);
+});
+
+test("writes an amount to send out with its six decimals, and a rate of the way out that says something", () => {
+  assert.equal(formatSend(12.5, "USDG"), "12.5");
+  assert.equal(formatSend(0.000001, "ETH"), "0.000001");
+  assert.equal(formatSend(50, "USDG"), "50");
+  assert.equal(formatRateOut(0.0016733, "XMR"), "0.00167");
+  assert.equal(formatRateOut(27.3505908, "STRK"), "27.350591");
 });

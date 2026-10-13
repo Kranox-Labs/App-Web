@@ -1,8 +1,13 @@
 // The shapes of the gate, in the form of the answers of the relay (apps/relay/src/server.mts), so that the client of
 // a client of the relay drops in behind one interface.
 
-/** A coin of Robinhood Chain that the gate brings in. */
+/** A coin of Robinhood Chain that the gate brings in, on the way in, or sends out, on the way out. */
 export type ChainAsset = "ETH" | "USDG";
+
+export const CHAIN_ASSET_CODES: readonly ChainAsset[] = ["USDG", "ETH"];
+
+/** Which way a swap goes: in, from a private chain into Robinhood Chain, or out, from Robinhood Chain into one. */
+export type Direction = "in" | "out";
 
 /**
  * A chain that the coins come from. Monero and, from 13 Oct 2026, Starknet and Zcash are open. Aleo stood here as
@@ -68,6 +73,65 @@ export interface PayRequest {
   refundAddress: string;
   rateId: string | null;
   creationKey: string;
+}
+
+/** The least and the most of a coin on Robinhood Chain that a swap out into a chain takes; it may have no most. */
+export interface OutRange {
+  provider: ProviderId;
+  chain: FromChain;
+  asset: ChainAsset;
+  minFrom: number;
+  maxFrom: number | null;
+}
+
+/**
+ * What an amount of a coin on Robinhood Chain buys of the coin of a chain, at the floating rate. Outside the range,
+ * [amount] is null and [limit] names the side. The deposit fee is in the coin sent, the withdrawal fee in the coin
+ * that arrives.
+ */
+export interface OutQuote {
+  provider: ProviderId;
+  chain: FromChain;
+  asset: ChainAsset;
+  fromAmount: string;
+  amount: number | null;
+  validUntil: string | null;
+  warning: string | null;
+  depositFee: number | null;
+  withdrawalFee: number | null;
+  speedMinutes: string | null;
+  limit: PayLimit | null;
+  minFrom: number | null;
+  maxFrom: number | null;
+}
+
+/**
+ * A swap out to open: the coin on Robinhood Chain and its amount, the chain and the address that receive, the wallet
+ * on Robinhood Chain that sends and takes a refund, and the key of this creation.
+ */
+export interface OutRequest {
+  provider: ProviderId;
+  chain: FromChain;
+  asset: ChainAsset;
+  fromAmount: string;
+  address: string;
+  refundAddress: string;
+  creationKey: string;
+}
+
+/** A swap out that the exchanger opened: the address on Robinhood Chain to send to, and the token that reads its state. */
+export interface CreatedOut {
+  id: string;
+  provider: ProviderId;
+  chain: FromChain;
+  asset: ChainAsset;
+  amount: number;
+  fromAmount: number;
+  depositAddress: string;
+  payoutAddress: string;
+  refundAddress: string;
+  validUntil: string | null;
+  readToken: string;
 }
 
 /** A swap that the exchanger opened: where to send the coins, and the token that reads its state. */

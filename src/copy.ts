@@ -12,7 +12,8 @@ export const COPY = {
 
   nav: {
     home: "Home",
-    receive: "Receive",
+    in: "In",
+    out: "Out",
     activity: "Activity",
     privacy: "Privacy",
     menu: "Menu",
@@ -30,7 +31,7 @@ export const COPY = {
 
   sidebar: {
     noWallet: "No wallet",
-    connectToReceive: "Connect one to receive",
+    connectToReceive: "Connect one to start",
     anotherNetwork: "Another network",
     relayTitle: "Relay",
     development: "Development",
@@ -61,9 +62,8 @@ export const COPY = {
     updating: "Reading the balance…",
     noWallet: "No wallet connected",
     noWalletText: "Connect one to see its balance and to receive into it.",
-    receive: "Receive",
-    send: "Send",
-    soon: "Soon",
+    in: "In",
+    out: "Out",
     address: "Your address",
     onChain: "On Robinhood Chain",
     privacyTitle: "Privacy",
@@ -72,11 +72,12 @@ export const COPY = {
     privacyLink: "See the checks",
     recent: "Recent activity",
     all: "All activity",
-    none: "No swaps yet. Receive into your wallet to see them here.",
+    none: "No swaps yet. Go in or out through the gate to see them here.",
   },
 
+  // The way in: a private chain into Robinhood Chain. The key keeps its old name, receive, in the code.
   receive: {
-    title: "Receive",
+    title: "In",
     steps: ["Chain", "Amount", "Provider", "Privacy", "Transaction"],
     stepOf: (step: number, total: number, name: string) => `Step ${step} of ${total} · ${name}`,
     chainLead: "Where do the coins come from?",
@@ -170,24 +171,86 @@ export const COPY = {
     failed: "The swap could not start. Try again in a moment.",
   },
 
-  // The note of a chain says what its side of the swap shows, on the privacy step and on the page of the swap: the
-  // privacy check reads the side of Robinhood Chain, and "All clear" there says nothing about a public chain of
-  // origin (D-27 of the scan of 13 Oct 2026).
+  // The way out: a coin on Robinhood Chain into the coin of a private chain, at the floating rate, sent by the
+  // wallet that is connected.
+  out: {
+    title: "Out",
+    steps: ["Chain", "Amount", "Provider", "Address", "Send"],
+    chainLead: "Where do the coins go?",
+    amountLead: "How much to send from your wallet, and which coin arrives.",
+    providerLead: (asset: ChainAsset, coin: string) => `Who turns your ${asset} into ${coin}.`,
+    addressLead:
+      "Where the coins arrive, and what this swap gives away, checked in this browser before you open the gate.",
+    sendLead: "The review, then the gate. Your wallet sends the deposit on the next page.",
+    youSend: "You send",
+    onChain: "On Robinhood Chain",
+    arrivesAs: "Arrives as",
+    arrivesText: "The coin of the chain you chose. Each provider shows how much on the next step.",
+    holds: (balance: string, asset: ChainAsset) => `Your wallet holds ${balance} ${asset}.`,
+    overBalance: (balance: string, asset: ChainAsset) => `More than the ${balance} ${asset} your wallet holds.`,
+    youGetLine: (amount: string, coin: string) => `${amount} ${coin}`,
+    rateLine: (asset: ChainAsset, rate: string, coin: string) => `1 ${asset} ≈ ${rate} ${coin}`,
+    feeLine: (fee: string, coin: string) => `The network fee of ${fee} ${coin} is already taken off.`,
+    floatingLine: "Floating rate: what arrives follows the rate at the time of your deposit.",
+    addressField: (name: string) => `Your ${name} address`,
+    addressInvalid: {
+      XMR: "That is not a Monero mainnet address.",
+      STRK: "That is not a Starknet address.",
+      ZEC: "That is not a transparent Zcash address. The providers pay transparent addresses only (t1, t3).",
+    } satisfies Record<FromChain, string>,
+    addressEvm: (name: string) =>
+      `That is an address of an EVM chain, such as your wallet on Robinhood Chain, not a ${name} address.`,
+    addressTip: {
+      XMR: "Use a subaddress of your own Monero wallet, a new one when you can. The coins arrive there as a normal transfer.",
+      STRK: "The address of your Starknet account, as your Starknet wallet shows it.",
+      ZEC: "The providers pay transparent addresses only, so give a transparent address of your Zcash wallet. You can shield the coins once they arrive.",
+    } satisfies Record<FromChain, string>,
+    addressNeeded: (name: string) => `Fill in your ${name} address to go on.`,
+    connectFirst: "Connect the wallet that sends to go on.",
+    from: "From",
+    fromText: "Your wallet on Robinhood Chain sends the deposit. If the swap fails, the refund comes back to it.",
+    review: "Before you open the gate",
+    feeNetworkLine: (fee: string, coin: string, name: string) =>
+      `Network fee on ${name}: ${fee} ${coin}, already taken off what you get.`,
+    feeDepositLine: (fee: string, asset: ChainAsset) =>
+      `Fee on the deposit: ${fee} ${asset}, already counted in what you get.`,
+    feeWalletLine: "Your wallet adds the network fee of Robinhood Chain when it sends; it is not part of the swap.",
+  },
+
+  // The notes of a chain say what its side of the swap shows, on the privacy step and on the page of the swap: the
+  // privacy check reads the side of Robinhood Chain, and "All clear" there says nothing about a public chain on the
+  // other side (D-27 of the scan of 13 Oct 2026). [text] and [note] serve the way in, [outText] and [outNote] the way out.
   chains: {
-    XMR: { name: "Monero", coin: "XMR", text: "Private by default.", note: null },
+    XMR: {
+      name: "Monero",
+      coin: "XMR",
+      text: "Private by default.",
+      note: null,
+      outText: "Into your Monero wallet, private by default.",
+      outNote: null,
+    },
     ZEC: {
       name: "Zcash",
       coin: "ZEC",
       text: "From your shielded balance, to a transparent deposit address.",
       note: "The deposit is a transparent transaction on Zcash: its amount and the deposit address are public, and so is the address you send from unless you send from your shielded balance. Send from the shielded balance, so that your own address stays out of it.",
+      outText: "To a transparent address of your Zcash wallet.",
+      outNote:
+        "The payout is a transparent transaction on Zcash: its amount and your address are public on the chain. Shield the coins once they arrive, so that what you do next stays out of it.",
     },
     STRK: {
       name: "Starknet",
       coin: "STRK",
       text: "From your Starknet wallet, in about a minute.",
       note: "Starknet is a public chain: the address you send from, the amount, and the time of the deposit are public on its ledger.",
+      outText: "To your Starknet wallet, in about a minute.",
+      outNote:
+        "Starknet is a public chain: your address, the amount, and the time of the payout are public on its ledger.",
     },
-  } satisfies Record<FromChain, { name: string; coin: string; text: string; note: string | null }>,
+  } satisfies Record<
+    FromChain,
+    { name: string; coin: string; text: string; note: string | null; outText: string; outNote: string | null }
+  >,
 
   // The support addresses: ChangeNOW CHECKED 5 Oct 2026 for the app; SimpleSwap CHECKED 12 Oct 2026, its site; NEAR
   // Intents CHECKED 13 Oct 2026, the page "Going live" of its documentation names its Telegram community.
@@ -215,7 +278,7 @@ export const COPY = {
 
   connect: {
     title: "Connect",
-    lead: "The coins arrive at the address of the wallet you connect. Kranox reads the address and asks the wallet to sign nothing.",
+    lead: "Kranox reads the address of the wallet you connect. On the way in the coins arrive there, and the wallet signs nothing. On the way out the wallet sends the deposit, one transfer that you confirm in it, and nothing else.",
     checking: "Reading the public history of this address…",
     fresh: "A fresh address: no transfers on Robinhood Chain yet. A clean start.",
     unchecked: "Kranox could not read the history of this address. You can still go on.",
@@ -227,8 +290,45 @@ export const COPY = {
     back: "Activity",
     sendTitle: (name: string) => `Send from your ${name} wallet`,
     amountToSend: "Amount to send, exactly",
-    into: (fromAmount: string, coin: string, amount: string, asset: ChainAsset) =>
-      `${fromAmount} ${coin} into ${amount} ${asset}`,
+    into: (fromAmount: string, fromUnit: string, amount: string, toUnit: string) =>
+      `${fromAmount} ${fromUnit} into ${amount} ${toUnit}`,
+    // The way out: the wallet that is connected sends the deposit on Robinhood Chain.
+    sendTitleOut: "Send from your wallet",
+    leadOut:
+      "From the wallet you connected, to this address on Robinhood Chain, in one transfer. What arrives follows the rate at the time of your deposit.",
+    sendButton: "Send from your wallet",
+    sending: "Confirm in your wallet…",
+    sent: "Sent from your wallet. The provider sees it after a few confirmations.",
+    sentNoHash:
+      "Sent from your wallet, which named no transaction. The provider sees the deposit after a few confirmations.",
+    sendRefused: "You refused the transfer in the wallet. Try again, or send by hand to the address above.",
+    sendFailed:
+      "The wallet did not confirm that it sent. Check the activity of your wallet before you send anything to this address again: one swap takes one deposit.",
+    wrongChainOut: "Your wallet is on another network. The deposit goes on Robinhood Chain.",
+    tooOld:
+      "This swap is a day old. Open a new one instead of sending to it: the provider may no longer watch this address.",
+    otherWallet: (short: string) =>
+      `The wallet ${short} opened this swap and takes its refund. Connect it to send from here, or send by hand from any wallet.`,
+    connectToSend: "Connect your wallet to send from here, or send by hand to the address above.",
+    byHand: "Or send by hand from any wallet: exactly this amount, to this address, on Robinhood Chain.",
+    stepsOut: {
+      waiting: "Waiting for your deposit",
+      confirming: "Confirming on Robinhood Chain",
+      exchanging: "Exchanging",
+      sending: (name: string) => `Sending to your ${name} address`,
+      finished: "Done",
+    },
+    arrivedOut: (amount: string, coin: string, name: string) => `${amount} ${coin} arrived at your ${name} address.`,
+    failedOut: (asset: ChainAsset) => `The swap failed. The provider sends the ${asset} back to your wallet.`,
+    refundedOut: (amount: string | null, asset: ChainAsset) =>
+      amount === null
+        ? `The provider sent the ${asset} back to your wallet.`
+        : `The provider sent ${amount} ${asset} back to your wallet.`,
+    expiredStepOut: (provider: ProviderWords, asset: ChainAsset) =>
+      `${provider.name} stopped waiting before it took in the ${asset}. If you sent it after all, write to ${provider.support} with the swap ID.`,
+    depositHashOut: "Your deposit on Robinhood Chain",
+    payoutHashOut: (name: string) => `The transaction on ${name}`,
+    refundHashOut: "The refund on Robinhood Chain",
     // A fixed rate holds until the time runs out; a floating one follows the market until the deposit (D-28).
     lead: (name: string, rate: PayRate) =>
       rate === "fixed"
@@ -326,7 +426,7 @@ export const COPY = {
   },
 } as const;
 
-/** The state of a swap in a list, in the words of its page; [chainName] names the chain the coins come from. */
+/** The state of a swap in a list, in the words of its page; [chainName] names the chain the deposit confirms on. */
 export function stageText(status: SwapStatus, chainName: string): string {
   switch (status) {
     case "new":

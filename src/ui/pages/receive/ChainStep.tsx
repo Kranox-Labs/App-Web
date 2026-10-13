@@ -43,7 +43,7 @@ export function ChainStep() {
           );
         })}
       </div>
-      <PillButton expand disabled={draft.chain === null} onClick={() => navigate(ROUTES.receiveAmount)}>
+      <PillButton expand disabled={draft.chain === null} onClick={() => navigate(ROUTES.inAmount)}>
         {COPY.receive.continue}
       </PillButton>
     </PageFrame>

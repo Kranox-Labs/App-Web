@@ -176,9 +176,9 @@ export function ProviderStep() {
 
   const goOn = () => {
     if (onRobinhoodChain(connection)) {
-      navigate(ROUTES.receivePrivacy);
+      navigate(ROUTES.inPrivacy);
     } else {
-      update({ returnTo: ROUTES.receivePrivacy });
+      update({ returnTo: ROUTES.inPrivacy });
       navigate(ROUTES.connect);
     }
   };
@@ -310,7 +310,7 @@ export function ProviderStep() {
             {other === undefined && (
               <>
                 {" "}
-                <Link href={ROUTES.receiveAmount}>{COPY.receive.changeAmount}</Link>
+                <Link href={ROUTES.inAmount}>{COPY.receive.changeAmount}</Link>
               </>
             )}
           </p>

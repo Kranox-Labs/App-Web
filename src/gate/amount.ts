@@ -1,6 +1,6 @@
-import { AMOUNT_PATTERN } from "../chain.ts";
+import { AMOUNT_PATTERN, CHAIN_ASSETS } from "../chain.ts";
 import { CHAIN_FACTS } from "./chains.ts";
-import type { FromChain } from "./types.ts";
+import type { ChainAsset, FromChain } from "./types.ts";
 
 /** How many decimals [text] writes after its point. */
 export function decimalsOf(text: string): number {
@@ -15,4 +15,12 @@ export function decimalsOf(text: string): number {
  */
 export function isFromAmount(text: string, chain: FromChain): boolean {
   return AMOUNT_PATTERN.test(text) && Number(text) > 0 && decimalsOf(text) <= CHAIN_FACTS[chain].decimals;
+}
+
+/**
+ * Whether [text] is an amount of [asset] on Robinhood Chain to send out: digits and one point, above zero, with at
+ * most the decimals of an amount to send, so that the wallet transfers exactly the amount the swap expects.
+ */
+export function isOutAmount(text: string, asset: ChainAsset): boolean {
+  return AMOUNT_PATTERN.test(text) && Number(text) > 0 && decimalsOf(text) <= CHAIN_ASSETS[asset].sendDecimals;
 }

@@ -1,8 +1,12 @@
 import type {
   AddressScan,
   ChainAsset,
+  CreatedOut,
   CreatedPay,
   FromChain,
+  OutQuote,
+  OutRange,
+  OutRequest,
   PayQuote,
   PayRange,
   PayRate,
@@ -22,6 +26,10 @@ export interface GateClient {
     fromAmount: string,
   ): Promise<PayQuote>;
   createPay(request: PayRequest): Promise<CreatedPay>;
+  /** The way out: a coin on Robinhood Chain into the coin of a chain, at the floating rate. */
+  outRange(provider: ProviderId, chain: FromChain, asset: ChainAsset): Promise<OutRange>;
+  outQuote(provider: ProviderId, chain: FromChain, asset: ChainAsset, fromAmount: string): Promise<OutQuote>;
+  createOut(request: OutRequest): Promise<CreatedOut>;
   readSwap(provider: ProviderId, id: string, readToken: string): Promise<SwapState>;
   scanAddress(address: string): Promise<AddressScan>;
 }

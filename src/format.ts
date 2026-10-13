@@ -12,6 +12,11 @@ export function formatAsset(amount: number, asset: ChainAsset): string {
   return trimZeros(amount.toFixed(CHAIN_ASSETS[asset].decimals));
 }
 
+/** An amount of a coin of Robinhood Chain to send, with every decimal an amount to send may have, and no trailing zeros. */
+export function formatSend(amount: number, asset: ChainAsset): string {
+  return trimZeros(amount.toFixed(CHAIN_ASSETS[asset].sendDecimals));
+}
+
 /**
  * A rate, the coin of Robinhood Chain that one coin of a chain buys: below one, three significant digits, so that
  * "1 STRK ≈ 0.0878 USDG" says more than "0.09"; above one, the decimals of the coin.
@@ -19,6 +24,15 @@ export function formatAsset(amount: number, asset: ChainAsset): string {
 export function formatRate(rate: number, asset: ChainAsset): string {
   if (rate > 0 && rate < 1) return trimZeros(rate.toPrecision(3));
   return formatAsset(rate, asset);
+}
+
+/**
+ * A rate of the way out, the coin of a chain that one coin on Robinhood Chain buys: below one, three significant
+ * digits, so that "1 USDG ≈ 0.00167 XMR" says more than "0"; above one, the decimals of the coin.
+ */
+export function formatRateOut(rate: number, chain: FromChain): string {
+  if (rate > 0 && rate < 1) return trimZeros(rate.toPrecision(3));
+  return formatFrom(rate, chain);
 }
 
 /** A balance of a coin of Robinhood Chain with all the decimals of that coin, as a balance card shows one. */

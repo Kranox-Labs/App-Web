@@ -87,14 +87,13 @@ export function HomePage() {
                   )}
                 </p>
                 <div className="hero__actions">
-                  <Link href={ROUTES.receive} className="pill pill--heroMain">
-                    {COPY.home.receive}
+                  <Link href={ROUTES.in} className="pill pill--heroMain">
+                    {COPY.home.in}
                   </Link>
-                  <span className="pill pill--heroAlt pill--off" aria-disabled="true">
-                    {COPY.home.send}
-                    <span className="tag tag--dark">{COPY.home.soon}</span>
-                  </span>
-                  <Link href={ROUTES.receive} className="round round--hero hero__arrow" aria-label={COPY.home.receive}>
+                  <Link href={ROUTES.out} className="pill pill--heroAlt">
+                    {COPY.home.out}
+                  </Link>
+                  <Link href={ROUTES.in} className="round round--hero hero__arrow" aria-label={COPY.home.in}>
                     <Icon name="receive" size={19} />
                   </Link>
                 </div>

@@ -10,11 +10,11 @@ import { useWallet, type Connection } from "../../../wallet/provider.ts";
 
 /** The five steps of receive, in order: the chain, the amount, the provider, the privacy review, the transaction. */
 export const STEP_ROUTES = [
-  ROUTES.receive,
-  ROUTES.receiveAmount,
-  ROUTES.receiveProvider,
-  ROUTES.receivePrivacy,
-  ROUTES.receiveTransaction,
+  ROUTES.in,
+  ROUTES.inAmount,
+  ROUTES.inProvider,
+  ROUTES.inPrivacy,
+  ROUTES.inTransaction,
 ] as const;
 
 /** Whether [text] is an amount of the coin of [chain] that the form takes. */
@@ -50,7 +50,7 @@ export function useStepGuard(step: number): boolean {
   const allowed = openUpTo(draft, connection);
   const ok = step <= allowed;
   useEffect(() => {
-    if (!ok) navigate(STEP_ROUTES[allowed] ?? ROUTES.receive, true);
+    if (!ok) navigate(STEP_ROUTES[allowed] ?? ROUTES.in, true);
   }, [ok, allowed]);
   return ok;
 }

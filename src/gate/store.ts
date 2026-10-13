@@ -1,11 +1,14 @@
 import { useSyncExternalStore } from "react";
 
+import { EVM_ADDRESS_PATTERN } from "../chain.ts";
 import {
   FROM_CHAINS,
   PROVIDER_IDS,
   SWAP_STATUSES,
   type ChainAsset,
+  type CreatedOut,
   type CreatedPay,
+  type Direction,
   type FromChain,
   type PayRate,
   type ProviderId,
@@ -13,17 +16,23 @@ import {
   type SwapStatus,
 } from "./types.ts";
 
-/** A swap of the user, as this browser keeps it: what was asked, where it goes, and the last state read. */
+/**
+ * A swap of the user, as this browser keeps it: what was asked, where it goes, and the last state read. On the way
+ * in, the coins of [chain] went in and [asset] arrived at [payoutAddress] on Robinhood Chain; on the way out, [asset]
+ * went in from the wallet at [refundAddress] and the coins of [chain] arrive at [payoutAddress] on that chain.
+ */
 export interface SwapRecord {
   id: string;
+  direction: Direction;
   provider: ProviderId;
   readToken: string;
-  /** The chain the coins came from. */
+  /** The chain of the private side: where the coins came from, or where they go. */
   chain: FromChain;
   asset: ChainAsset;
   rate: PayRate;
-  /** The amount of the coin of that chain that was sent. */
+  /** The amount sent: of the coin of the chain on the way in, of the coin on Robinhood Chain on the way out. */
   fromAmount: number;
+  /** The amount that arrives: of the coin on Robinhood Chain on the way in, of the coin of the chain on the way out. */
   amount: number;
   depositAddress: string;
   payoutAddress: string;
@@ -37,6 +46,8 @@ export interface SwapRecord {
   refundAmount: number | null;
   updatedAt: string | null;
   checkedAt: string | null;
+  /** When the connected wallet sent the deposit of a swap out from this browser, or null while it has not. */
+  depositSentAt: string | null;
 }
 
 // The swaps live in the storage of this site in the browser, and nowhere else: no server of Kranox holds them.
@@ -74,6 +85,7 @@ export function findSwap(id: string): SwapRecord | null {
 export function recordOf(created: CreatedPay, rate: PayRate): SwapRecord {
   return {
     id: created.id,
+    direction: "in",
     provider: created.provider,
     readToken: created.readToken,
     chain: created.chain,
@@ -93,7 +105,44 @@ export function recordOf(created: CreatedPay, rate: PayRate): SwapRecord {
     refundAmount: null,
     updatedAt: null,
     checkedAt: null,
+    depositSentAt: null,
   };
+}
+
+/** A record of a swap out that the exchanger just opened, at the floating rate, which is the rate of the way out. */
+export function recordOfOut(created: CreatedOut): SwapRecord {
+  return {
+    id: created.id,
+    direction: "out",
+    provider: created.provider,
+    readToken: created.readToken,
+    chain: created.chain,
+    asset: created.asset,
+    rate: "floating",
+    fromAmount: created.fromAmount,
+    amount: created.amount,
+    depositAddress: created.depositAddress,
+    payoutAddress: created.payoutAddress,
+    refundAddress: created.refundAddress,
+    createdAt: new Date().toISOString(),
+    validUntil: created.validUntil,
+    status: "waiting",
+    depositHash: null,
+    payoutHash: null,
+    refundHash: null,
+    refundAmount: null,
+    updatedAt: null,
+    checkedAt: null,
+    depositSentAt: null,
+  };
+}
+
+/**
+ * The record of a swap out whose deposit the wallet just sent, with its hash when the wallet named one, until the
+ * exchanger names it; a wallet that named no hash sent it all the same, so the record says that it was sent (D-33).
+ */
+export function withDeposit(record: SwapRecord, depositHash: string | null, sentAt: Date = new Date()): SwapRecord {
+  return { ...record, depositHash: depositHash ?? record.depositHash, depositSentAt: sentAt.toISOString() };
 }
 
 /** Keeps [record], in place of an older record of the same swap. */
@@ -149,7 +198,8 @@ function load(): readonly SwapRecord[] {
 /**
  * A record of an older build in the form of this one, each change on its own (D-19 of the scan of 13 Oct 2026):
  * before 12 Oct 2026 a record named no provider, since ChangeNOW was the only one (D-04 of the scan of that day);
- * before 13 Oct 2026 it wrote its amount as xmrAmount and named no chain, since Monero was the only chain.
+ * before 13 Oct 2026 it wrote its amount as xmrAmount and named no chain, since Monero was the only chain; and
+ * until later that day it named no direction, since every swap went in.
  */
 export function upgradedRecord(value: unknown): unknown {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
@@ -160,6 +210,8 @@ export function upgradedRecord(value: unknown): unknown {
     delete record.xmrAmount;
   }
   if (record.chain === undefined) record.chain = "XMR";
+  if (record.direction === undefined) record.direction = "in";
+  if (record.depositSentAt === undefined) record.depositSentAt = null;
   return record;
 }
 
@@ -168,12 +220,21 @@ const isNullableText = (value: unknown): boolean => value === null || typeof val
 const isNullableNumber = (value: unknown): boolean => value === null || typeof value === "number";
 
 // A record that another release wrote, or that a hand changed, stays out rather than breaking a page: every field
-// must have its form, and the state must be one the pages know.
+// must have its form, and the state must be one the pages know. The addresses of a swap out on Robinhood Chain feed
+// the transfer that the wallet signs, so they must be addresses of that chain (D-35 of the scan of 13 Oct 2026).
 export function isRecord(value: unknown): value is SwapRecord {
   if (typeof value !== "object" || value === null) return false;
   const record = value as Record<string, unknown>;
+  const outAddresses =
+    record.direction !== "out" ||
+    (typeof record.depositAddress === "string" &&
+      EVM_ADDRESS_PATTERN.test(record.depositAddress) &&
+      typeof record.refundAddress === "string" &&
+      EVM_ADDRESS_PATTERN.test(record.refundAddress));
   return (
     isText(record.id) &&
+    (record.direction === "in" || record.direction === "out") &&
+    outAddresses &&
     PROVIDER_IDS.some((provider) => provider === record.provider) &&
     isText(record.readToken) &&
     FROM_CHAINS.some((chain) => chain === record.chain) &&
@@ -192,6 +253,7 @@ export function isRecord(value: unknown): value is SwapRecord {
     isNullableText(record.refundHash) &&
     isNullableNumber(record.refundAmount) &&
     isNullableText(record.updatedAt) &&
-    isNullableText(record.checkedAt)
+    isNullableText(record.checkedAt) &&
+    isNullableText(record.depositSentAt)
   );
 }
