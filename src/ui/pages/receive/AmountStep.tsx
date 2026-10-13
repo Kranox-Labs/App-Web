@@ -26,10 +26,13 @@ export function AmountStep() {
   const { draft, update } = useDraft();
   const { chain, asset, fromAmount } = draft;
   // The range belongs to the chain and the coin it was read for; another one shows none until its own came.
-  const [read, setRead] = useState<{ key: string; range: FromRange | null } | null>(null);
+  // The widest range of the providers of the chain, and whether every provider gave its range: a range with one
+  // missing advises and blocks nothing, since the missing provider may take the amount (D-29 of the scan of 13 Oct 2026).
+  const [read, setRead] = useState<{ key: string; range: FromRange | null; complete: boolean } | null>(null);
   const key = `${String(chain)}:${asset}`;
   const done = read !== null && read.key === key;
   const range = done ? read.range : null;
+  const complete = done && read.complete;
   // Every provider of the chain at every rate it serves: the widest range over them holds an amount that at least
   // one of them takes at some rate, which the next step shows and settles (D-21 of the scan of 13 Oct 2026).
   const pairs = useMemo(
@@ -43,7 +46,7 @@ export function AmountStep() {
     Promise.allSettled(pairs.map((pair) => client.payRange(pair.id, chain, asset, pair.rate))).then((results) => {
       const found = results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
       // A provider that gave no range tells it when the amount falls outside it, on the next step.
-      if (live) setRead({ key, range: widestRange(found) });
+      if (live) setRead({ key, range: widestRange(found), complete: found.length === pairs.length });
     });
     return () => {
       live = false;
@@ -57,7 +60,10 @@ export function AmountStep() {
   const valid = validAmount(fromAmount, chain);
   const amount = Number(fromAmount);
   const outside =
-    valid && range !== null && (amount < range.minFrom || (range.maxFrom !== null && amount > range.maxFrom));
+    valid &&
+    complete &&
+    range !== null &&
+    (amount < range.minFrom || (range.maxFrom !== null && amount > range.maxFrom));
   const error =
     fromAmount !== "" && !AMOUNT_PATTERN.test(fromAmount)
       ? COPY.receive.badAmount
@@ -71,9 +77,11 @@ export function AmountStep() {
   const rangeHint =
     range === null
       ? null
-      : range.maxFrom === null
-        ? COPY.receive.rangeFrom(formatFrom(range.minFrom, chain), facts.coin)
-        : COPY.receive.rangeHint(formatFrom(range.minFrom, chain), formatFrom(range.maxFrom, chain), facts.coin);
+      : !complete
+        ? COPY.receive.rangePartial
+        : range.maxFrom === null
+          ? COPY.receive.rangeFrom(formatFrom(range.minFrom, chain), facts.coin)
+          : COPY.receive.rangeHint(formatFrom(range.minFrom, chain), formatFrom(range.maxFrom, chain), facts.coin);
 
   return (
     <PageFrame wide title={COPY.receive.title} lead={COPY.receive.amountLead}>

@@ -1,9 +1,10 @@
 // The chains the coins come from, with what the pages need of each: its coin, its name at the relay, the decimals of
 // an amount in the form, the checks of its addresses, the way to open a payment in a wallet, and the rate to start
-// from. Monero and Starknet are open; Zcash and Aleo wait, so their checks take nothing yet.
+// from. Monero, Starknet, and Zcash are open.
 import { MONERO_DEPOSIT_PATTERN, XMR_DECIMALS } from "../chain.ts";
 import { isMoneroMainnetAddress } from "./monero-address.ts";
 import { isStarknetAddress, sameStarknetAddress } from "./starknet-address.ts";
+import { isZcashTransparentAddress } from "./zcash-address.ts";
 import type { FromChain, PayRate } from "./types.ts";
 
 export interface ChainFacts {
@@ -26,7 +27,6 @@ export interface ChainFacts {
 }
 
 const sameText = (a: string, b: string): boolean => a === b;
-const nothing = (): boolean => false;
 
 export const CHAIN_FACTS: Record<FromChain, ChainFacts> = {
   XMR: {
@@ -58,20 +58,14 @@ export const CHAIN_FACTS: Record<FromChain, ChainFacts> = {
     coin: "ZEC",
     relayName: "zec",
     decimals: 8,
-    defaultRate: "fixed",
-    isRefundAddress: nothing,
-    isDepositAddress: nothing,
+    // NEAR Intents, first among the providers of the chain, serves a floating rate alone; the other two serve both.
+    defaultRate: "floating",
+    // The providers take and pay ZEC at transparent addresses alone (t1, t3): a shielded or unified address takes no
+    // refund, and the deposit goes to a transparent address.
+    isRefundAddress: isZcashTransparentAddress,
+    isDepositAddress: isZcashTransparentAddress,
     sameAddress: sameText,
-    paymentLink: () => null,
-  },
-  ALEO: {
-    coin: "ALEO",
-    relayName: "aleo",
-    decimals: 6,
-    defaultRate: "fixed",
-    isRefundAddress: nothing,
-    isDepositAddress: nothing,
-    sameAddress: sameText,
-    paymentLink: () => null,
+    // A link of payment after ZIP 321, which the wallets of Zcash open.
+    paymentLink: (address, amount) => `zcash:${address}?amount=${amount}`,
   },
 };

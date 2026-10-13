@@ -101,6 +101,7 @@ export const COPY = {
     quoting: "Getting the quote…",
     rangeLoading: "Reading the range…",
     rangeUnknown: "No range came through right now. The next step says what each provider takes.",
+    rangePartial: "Not every provider gave its range right now. The next step says what each one takes.",
     youGetLine: (amount: string, asset: ChainAsset) => `${amount} ${asset}`,
     rateLine: (coin: string, rate: string, asset: ChainAsset) => `1 ${coin} ≈ ${rate} ${asset}`,
     fixedLine: (time: string) => `Fixed rate, good for ${time}`,
@@ -131,15 +132,13 @@ export const COPY = {
     refundHint: {
       XMR: "A Monero mainnet address: 95 characters that start with 4 or 8",
       STRK: "The address of your Starknet account, as your Starknet wallet shows it: 0x and up to 64 hex digits",
-      ZEC: "",
-      ALEO: "",
+      ZEC: "A transparent Zcash address: 35 characters that start with t1 or t3",
     } satisfies Record<FromChain, string>,
     refundNeeded: (name: string) => `Fill in your ${name} address for a refund to open the gate.`,
     refundInvalid: {
       XMR: "That is not a Monero mainnet address.",
       STRK: "That is not a Starknet address.",
-      ZEC: "",
-      ALEO: "",
+      ZEC: "That is not a transparent Zcash address. A shielded or unified address (zs1, u1) takes no refund here.",
     } satisfies Record<FromChain, string>,
     refundEvm: (name: string) =>
       `That is an address of an EVM chain, such as your wallet on Robinhood Chain, not a ${name} account.`,
@@ -148,8 +147,7 @@ export const COPY = {
     refundTip: {
       XMR: "Why it is required: Monero shows the provider no sender, so if the swap fails, a refund can only go to an address you give here. Use a new subaddress of your Monero wallet, not one that took part in a swap before. A refund is rare: it comes only when the provider cannot complete the swap.",
       STRK: "Why it is required: if the swap fails, the provider sends the STRK back to an address you give here. Use the address of the Starknet wallet you send from, or another account of yours. A refund is rare: it comes only when the provider cannot complete the swap.",
-      ZEC: "",
-      ALEO: "",
+      ZEC: "Why it is required: if the swap fails, the provider sends the ZEC back to an address you give here. The providers pay transparent addresses only, so give a transparent address of your Zcash wallet, a new one when you can. A refund is rare: it comes only when the provider cannot complete the swap.",
     } satisfies Record<FromChain, string>,
     review: "Before you open the gate",
     to: "To",
@@ -172,12 +170,24 @@ export const COPY = {
     failed: "The swap could not start. Try again in a moment.",
   },
 
+  // The note of a chain says what its side of the swap shows, on the privacy step and on the page of the swap: the
+  // privacy check reads the side of Robinhood Chain, and "All clear" there says nothing about a public chain of
+  // origin (D-27 of the scan of 13 Oct 2026).
   chains: {
-    XMR: { name: "Monero", coin: "XMR", text: "Private by default." },
-    ZEC: { name: "Zcash", coin: "ZEC", text: "Shielded coins. On the road ahead." },
-    STRK: { name: "Starknet", coin: "STRK", text: "From your Starknet wallet, in about a minute." },
-    ALEO: { name: "Aleo", coin: "ALEO", text: "On the road ahead." },
-  } satisfies Record<FromChain, { name: string; coin: string; text: string }>,
+    XMR: { name: "Monero", coin: "XMR", text: "Private by default.", note: null },
+    ZEC: {
+      name: "Zcash",
+      coin: "ZEC",
+      text: "From your shielded balance, to a transparent deposit address.",
+      note: "The deposit is a transparent transaction on Zcash: its amount and the deposit address are public, and so is the address you send from unless you send from your shielded balance. Send from the shielded balance, so that your own address stays out of it.",
+    },
+    STRK: {
+      name: "Starknet",
+      coin: "STRK",
+      text: "From your Starknet wallet, in about a minute.",
+      note: "Starknet is a public chain: the address you send from, the amount, and the time of the deposit are public on its ledger.",
+    },
+  } satisfies Record<FromChain, { name: string; coin: string; text: string; note: string | null }>,
 
   // The support addresses: ChangeNOW CHECKED 5 Oct 2026 for the app; SimpleSwap CHECKED 12 Oct 2026, its site; NEAR
   // Intents CHECKED 13 Oct 2026, the page "Going live" of its documentation names its Telegram community.
@@ -196,7 +206,8 @@ export const COPY = {
     },
     oneclick: {
       name: "NEAR Intents",
-      text: "A swap settled by intents, in about a minute.",
+      // The minutes differ by chain (about one for STRK, about eight for ZEC): the line of the quote names them.
+      text: "A swap settled by intents, with the time named below.",
       sees: "The amount, the time, the deposit, and the address that receives, on the public ledger of NEAR Intents. Never your keys, and never your IP address: Kranox asks it through its relay.",
       support: "https://t.me/near_intents",
     },
@@ -218,8 +229,11 @@ export const COPY = {
     amountToSend: "Amount to send, exactly",
     into: (fromAmount: string, coin: string, amount: string, asset: ChainAsset) =>
       `${fromAmount} ${coin} into ${amount} ${asset}`,
-    lead: (name: string) =>
-      `From your own ${name} wallet, to this address, in one payment. The rate holds until the time runs out.`,
+    // A fixed rate holds until the time runs out; a floating one follows the market until the deposit (D-28).
+    lead: (name: string, rate: PayRate) =>
+      rate === "fixed"
+        ? `From your own ${name} wallet, to this address, in one payment. The rate holds until the time runs out.`
+        : `From your own ${name} wallet, to this address, in one payment. What arrives follows the rate at the time of your deposit.`,
     depositAddress: "Deposit address",
     copy: "Copy",
     copied: "Copied",

@@ -73,6 +73,8 @@ export function PrivacyStep() {
     now,
   });
   const warnings = warningCount(report);
+  // What the chain of origin shows on its own side, which the check above does not read (D-27).
+  const chainNote = draft.chain === null ? null : COPY.chains[draft.chain].note;
   const rules = [
     {
       label: COPY.privacy.address,
@@ -106,6 +108,7 @@ export function PrivacyStep() {
             />
           ))}
         </ul>
+        {chainNote !== null && <Notice>{chainNote}</Notice>}
       </Surface>
       <Surface>
         <AddressBox label={COPY.receive.arrivesAt} text={address} />

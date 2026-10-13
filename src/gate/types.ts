@@ -4,10 +4,14 @@
 /** A coin of Robinhood Chain that the gate brings in. */
 export type ChainAsset = "ETH" | "USDG";
 
-/** A chain that the coins come from. Monero and, from 13 Oct 2026, Starknet are open; the others name the road ahead. */
-export type FromChain = "XMR" | "ZEC" | "STRK" | "ALEO";
+/**
+ * A chain that the coins come from. Monero and, from 13 Oct 2026, Starknet and Zcash are open. Aleo stood here as
+ * "Soon" until 13 Oct 2026, when a check found no provider that takes ALEO into Robinhood Chain, and the owner had it
+ * removed: a chain enters the step once a provider takes it.
+ */
+export type FromChain = "XMR" | "ZEC" | "STRK";
 
-export const FROM_CHAINS: readonly FromChain[] = ["XMR", "ZEC", "STRK", "ALEO"];
+export const FROM_CHAINS: readonly FromChain[] = ["XMR", "ZEC", "STRK"];
 
 /** An exchange that turns the coins of a chain into a coin of Robinhood Chain. */
 export type ProviderId = "changenow" | "simpleswap" | "oneclick";

@@ -120,9 +120,10 @@ export function SwapPage({ id }: { id: string }) {
       wide
       back={back}
       title={waiting ? COPY.swap.sendTitle(words.name) : COPY.swap.into(from, facts.coin, amount, record.asset)}
-      lead={waiting ? COPY.swap.lead(words.name) : undefined}
+      lead={waiting ? COPY.swap.lead(words.name, record.rate) : undefined}
     >
       {waiting && ranOut && <Notice tone="warn">{COPY.swap.expired}</Notice>}
+      {waiting && !ranOut && words.note !== null && <Notice>{words.note}</Notice>}
       {waiting && !ranOut && (
         <Glass>
           <QrCode

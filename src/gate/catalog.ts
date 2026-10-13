@@ -1,17 +1,19 @@
 import type { FromChain, PayRate, ProviderId } from "./types.ts";
 
-/** The chains the coins can come from, in the order of the step. Monero and Starknet are open. */
+/**
+ * The chains the coins can come from, in the order of the step, all open. A chain that waits for its provider can
+ * stand here closed, which the step shows as "Soon"; Aleo stood so until 13 Oct 2026, when no provider took it.
+ */
 export const CHAINS: readonly { code: FromChain; open: boolean }[] = [
   { code: "XMR", open: true },
-  { code: "ZEC", open: false },
+  { code: "ZEC", open: true },
   { code: "STRK", open: true },
-  { code: "ALEO", open: false },
 ];
 
 /**
  * The exchanges that make a swap: the chains each takes the coins from, and the rates it serves. The words about each
- * are in the copy. CHECKED 13 Oct 2026: ChangeNOW takes XMR and STRK at both rates, SimpleSwap XMR at both, and the
- * 1Click API of NEAR Intents STRK at a floating rate, which is what a quote with a slippage is.
+ * are in the copy. CHECKED 13 Oct 2026: ChangeNOW takes XMR, STRK, and ZEC at both rates, SimpleSwap XMR and ZEC at
+ * both, and the 1Click API of NEAR Intents STRK and ZEC at a floating rate, which is what a quote with a slippage is.
  */
 export const PROVIDERS: readonly {
   id: ProviderId;
@@ -19,9 +21,9 @@ export const PROVIDERS: readonly {
   chains: readonly FromChain[];
   rates: readonly PayRate[];
 }[] = [
-  { id: "changenow", open: true, chains: ["XMR", "STRK"], rates: ["fixed", "floating"] },
-  { id: "simpleswap", open: true, chains: ["XMR"], rates: ["fixed", "floating"] },
-  { id: "oneclick", open: true, chains: ["STRK"], rates: ["floating"] },
+  { id: "changenow", open: true, chains: ["XMR", "STRK", "ZEC"], rates: ["fixed", "floating"] },
+  { id: "simpleswap", open: true, chains: ["XMR", "ZEC"], rates: ["fixed", "floating"] },
+  { id: "oneclick", open: true, chains: ["STRK", "ZEC"], rates: ["floating"] },
 ];
 
 /** The order of the providers on the step of each chain: the first is the choice until the user picks another. */
@@ -29,8 +31,8 @@ const PROVIDER_ORDER: Record<FromChain, readonly ProviderId[]> = {
   XMR: ["changenow", "simpleswap"],
   // NEAR Intents first: it settles in about a minute and gave about 3% more USDG for 1000 STRK on 13 Oct 2026.
   STRK: ["oneclick", "changenow"],
-  ZEC: [],
-  ALEO: [],
+  // NEAR Intents first here too: about eight minutes, and about 2.6% more USDG for 1 ZEC on 13 Oct 2026.
+  ZEC: ["oneclick", "changenow", "simpleswap"],
 };
 
 function entryOf(id: ProviderId) {

@@ -3,22 +3,23 @@ import { test } from "node:test";
 import { CHAINS, PROVIDERS, providersOf, ratesOf } from "../src/gate/catalog.ts";
 import { CHAIN_FACTS } from "../src/gate/chains.ts";
 import { COPY } from "../src/copy.ts";
+import { formatFrom } from "../src/format.ts";
 
 // A known address of each open chain, as a wallet shows it.
 const KNOWN_ADDRESSES = {
   XMR: "883z7Wmbd5nhoH6xQxLzgniNhN6jqdvxFiza4rMdErWA1XW1TCL1tqrCwWFwhG1QkuL17RRHP45J33y6u4sH8Rfa7kryRza",
   STRK: "0x04a3f9c1b2e7d8a5c6f0e1d2c3b4a5968778695a4b3c2d1e0f1a2b3c4d5e6f70",
+  ZEC: "t1URu8q83ibd8sgDoW3VnJoPjUusRz97h8J",
 } as const;
 
-test("Monero and Starknet are open, with their providers in order, and the others wait", () => {
+test("Monero, Zcash, and Starknet are open, with their providers in order", () => {
   assert.deepEqual(
     CHAINS.filter((chain) => chain.open).map((chain) => chain.code),
-    ["XMR", "STRK"],
+    ["XMR", "ZEC", "STRK"],
   );
   assert.deepEqual(providersOf("XMR"), ["changenow", "simpleswap"]);
   assert.deepEqual(providersOf("STRK"), ["oneclick", "changenow"]);
-  assert.deepEqual(providersOf("ZEC"), []);
-  assert.deepEqual(providersOf("ALEO"), []);
+  assert.deepEqual(providersOf("ZEC"), ["oneclick", "changenow", "simpleswap"]);
 });
 
 test("each provider serves its rates, and each chain starts at a rate its providers serve", () => {
@@ -27,10 +28,11 @@ test("each provider serves its rates, and each chain starts at a rate its provid
   assert.deepEqual(ratesOf("oneclick"), ["floating"]);
   for (const chain of CHAINS.filter((each) => each.open).map((each) => each.code)) {
     const rate = CHAIN_FACTS[chain].defaultRate;
-    assert.ok(
-      providersOf(chain).some((provider) => ratesOf(provider).includes(rate)),
-      `${chain} starts at the ${rate} rate, which one of its providers serves`,
-    );
+    const [first] = providersOf(chain);
+    assert.ok(first !== undefined, `${chain} has a provider`);
+    // The first provider is the one the provider step picks on arrival: it must serve the rate the chain starts at,
+    // or the step would switch the rate at once (D-31).
+    assert.ok(ratesOf(first).includes(rate), `${chain} starts at the ${rate} rate, which ${first} serves`);
   }
 });
 
@@ -85,8 +87,20 @@ test("the facts of a chain: its coin, its name at the relay, its addresses, and 
     "the same account without its zero and in another case",
   );
   assert.equal(strk.isRefundAddress("0x7A3Fc0E1b9D24a6C58E0F3B1d9A7C4e2F6B8D015"), false, "an EVM address (D-17)");
-  for (const closed of ["ZEC", "ALEO"] as const) {
-    assert.equal(CHAIN_FACTS[closed].isRefundAddress("anything"), false, `${closed} takes nothing yet`);
-    assert.equal(CHAIN_FACTS[closed].isDepositAddress("anything"), false);
-  }
+  const zec = CHAIN_FACTS.ZEC;
+  assert.equal(zec.decimals, 8);
+  assert.equal(zec.defaultRate, "floating");
+  assert.equal(zec.paymentLink("t1address", "0.1"), "zcash:t1address?amount=0.1", "a link after ZIP 321");
+  assert.equal(
+    zec.paymentLink(KNOWN_ADDRESSES.ZEC, formatFrom(0.00000001, "ZEC")),
+    `zcash:${KNOWN_ADDRESSES.ZEC}?amount=0.00000001`,
+    "the least amount writes without an exponent",
+  );
+  assert.equal(formatFrom(1.23456789, "ZEC"), "1.23456789", "eight decimals for ZEC");
+  assert.equal(formatFrom(0.1, "ZEC"), "0.1");
+  assert.notEqual(COPY.chains.ZEC.note, null, "Zcash says what its transparent side shows");
+  assert.equal(
+    zec.isRefundAddress("zs1z7rejlpsa98s2rrrfkwmaxu53e4ue0ulcrw0h4x5g8f3g2d4kv4v9q0jfgcm3vhk3wm6ajqmp8"),
+    false,
+  );
 });

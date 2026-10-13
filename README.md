@@ -2,8 +2,8 @@
 
 The web app of Kranox: the gate from any private chain into Robinhood Chain, in the shape of a wallet. The user connects the wallet
 that receives, and receive walks through the chain the coins come from, the amount, the provider, the privacy review,
-and the transaction: the user sends the coins from their own wallet of that chain, XMR from a Monero wallet or STRK
-from a Starknet wallet, and the coins arrive in the wallet they connected. The app holds no keys, opens no account,
+and the transaction: the user sends the coins from their own wallet of that chain, XMR from a Monero wallet, STRK
+from a Starknet wallet, or ZEC from a Zcash wallet, and the coins arrive in the wallet they connected. The app holds no keys, opens no account,
 and keeps the swaps of the user in the browser only. It runs in the browser of a phone and of a desktop.
 
 The app talks to the relay of Kranox ([Kranox-Labs/Relay](https://github.com/Kranox-Labs/Relay)), which holds the key
@@ -36,7 +36,8 @@ of the build for `app.kranox.cash` to `dist/`, with the values of `.env.producti
   belong to their projects.
 - `src/styles/`: the design tokens and the base styles, after the dark look of the Kranox app.
 - `test/`: the tests of the logic that touches money and trust: the signatures, the settings, the balances, the
-  amounts, and the privacy check.
+  amounts, the addresses of each chain, the catalog of the providers, the quotes and the ranges, the store, the
+  router, the client of the relay, and the privacy check.
 
 ## License
 
